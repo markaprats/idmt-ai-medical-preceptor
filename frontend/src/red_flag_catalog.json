@@ -11,7 +11,7 @@
   ],
   "chief_complaint_categories": {
     "chest_pain": {
-      "keywords": ["chest pain", "chest tightness", "pressure in chest", "substernal pain", "arm pain", "jaw pain"],
+      "keywords": ["chest pain", "chest tightness", "pressure in chest", "substernal pain", "jaw pain"],
       "red_flags": [
         "Pain radiating to arm/jaw/neck",
         "Diaphoresis",
@@ -95,7 +95,7 @@
       ]
     },
     "extremity_pain": {
-      "keywords": ["extremity pain", "arm pain", "leg pain", "hand pain", "foot pain", "knee pain", "ankle pain", "shoulder pain", "wrist pain", "joint pain", "joint swelling", "swollen joint", "limb pain", "sprain", "strain"],
+      "keywords": ["extremity pain", "arm pain", "leg pain", "hand pain", "foot pain", "knee pain", "ankle pain", "shoulder pain", "wrist pain", "joint pain", "joint swelling", "swollen joint", "limb pain", "sprain", "strain", "wrist swelling", "ankle swelling", "knee swelling", "elbow swelling"],
       "red_flags": [
         "Neurovascular compromise",
         "Cold, pale, or pulseless extremity",
