@@ -8,3 +8,7 @@ backend/data/chunks.json
 
 # Node
 node_modules/
+
+# Environment / secrets
+.env
+backend/.env

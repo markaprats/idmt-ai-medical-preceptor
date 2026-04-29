@@ -243,3 +243,86 @@ async def get_index_status():
         "documents": documents,
         "status": "ready" if chunks else "empty",
     }
+import os
+from openai import OpenAI
+from dotenv import load_dotenv
+
+load_dotenv()
+
+client = OpenAI(api_key=os.getenv("OPENAI_API_KEY"))
+OPENAI_MODEL = os.getenv("OPENAI_MODEL", "gpt-4.1-mini")
+
+
+class GenerateGuidanceRequest(BaseModel):
+    case_data: dict
+    protocol_results: List[dict]
+
+
+@router.post("/generate-guidance")
+async def generate_guidance(request: GenerateGuidanceRequest):
+    case_data = request.case_data
+    protocol_results = request.protocol_results
+
+    source_text = "\n\n".join([
+        f"Source {i + 1}: {item.get('document_name')} page {item.get('page_number')}\n{item.get('snippet')}"
+        for i, item in enumerate(protocol_results[:5])
+    ])
+
+    system_prompt = """
+You are an IDMT AI Medical Preceptor prototype.
+
+Rules:
+- This is not a diagnosis.
+- Do not replace clinical judgment.
+- Do not invent protocol authority.
+- Use only provided protocol source text for protocol-supported recommendations.
+- If sources do not support a recommendation, say so.
+- Medication dosing may only be included if present in provided source text.
+- If no direct protocol support exists, recommend stabilization, reassessment, preceptor consultation, and evacuation/escalation as clinically appropriate.
+- Be conservative for red flags, unstable vitals, or missing critical data.
+- Keep output concise and operational.
+- Return valid JSON only.
+"""
+
+    user_prompt = f"""
+CASE DATA:
+{case_data}
+
+RETRIEVED PROTOCOL SOURCES:
+{source_text}
+
+Return JSON only with these keys:
+immediate_red_flags
+differential_cannot_miss
+differential_more_common
+differential_other
+ask_check_next
+protocol_supported_recommendations
+general_clinical_reasoning
+medication_guidance
+assessment_plan_review
+call_preceptor_evacuate
+confidence_data_integrity
+safety_disclaimer
+"""
+
+    try:
+        response = client.chat.completions.create(
+            model=OPENAI_MODEL,
+            messages=[
+                {"role": "system", "content": system_prompt},
+                {"role": "user", "content": user_prompt},
+            ],
+            temperature=0.2,
+        )
+
+        content = response.choices[0].message.content
+
+        return {
+            "guidance": content,
+            "model": OPENAI_MODEL,
+            "sources_used": len(protocol_results[:5]),
+        }
+
+    except Exception as e:
+        raise HTTPException(status_code=500, detail=f"AI generation failed: {str(e)}")    
