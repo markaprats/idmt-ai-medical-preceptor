@@ -1,0 +1,781 @@
+{
+  "chest_pain": {
+    "keywords": ["chest pain", "chest pressure", "chest tightness", "substernal pain"],
+    "cannot_miss": [
+      "Aortic dissection",
+      "Myocardial infarction",
+      "Myocarditis",
+      "Pericardial effusion/tamponade",
+      "Pericarditis",
+      "Pneumothorax",
+      "Pulmonary embolism",
+      "Pneumonia",
+      "Esophageal rupture"
+    ],
+    "more_common": [
+      "GERD",
+      "Functional dyspepsia",
+      "Costochondritis",
+      "Musculoskeletal pain",
+      "Anxiety/panic attack"
+    ],
+    "other": [
+      "Rib fracture",
+      "Pleurisy",
+      "Esophagitis",
+      "Esophageal spasm",
+      "Coronary artery vasospasm"
+    ]
+  },
+
+  "shortness_of_breath": {
+    "keywords": ["shortness of breath", "sob", "dyspnea", "trouble breathing", "difficulty breathing"],
+    "cannot_miss": [
+      "Arrhythmia",
+      "Heart failure",
+      "Myocardial infarction",
+      "Pericardial effusion/tamponade",
+      "Asthma exacerbation",
+      "Pneumonia",
+      "Pneumothorax",
+      "Pulmonary embolism",
+      "Anaphylaxis",
+      "Metabolic acidosis"
+    ],
+    "more_common": [
+      "Bronchitis",
+      "Anxiety",
+      "Panic attack",
+      "Stress",
+      "Bronchospasm"
+    ],
+    "other": [
+      "COPD",
+      "Anemia",
+      "Hyperthyroidism",
+      "Vocal cord dysfunction"
+    ]
+  },
+
+  "acute_cough": {
+    "keywords": ["cough", "acute cough", "productive cough", "dry cough"],
+    "cannot_miss": [
+      "Aspiration/foreign body",
+      "Asthma",
+      "Heart failure",
+      "Pneumonia",
+      "Pneumothorax",
+      "Pulmonary embolism",
+      "Pulmonary edema",
+      "Lung cancer"
+    ],
+    "more_common": [
+      "Upper respiratory infection",
+      "Bronchitis",
+      "Post-infectious cough",
+      "Allergic rhinitis",
+      "Sinusitis",
+      "GERD"
+    ],
+    "other": [
+      "Bronchospasm",
+      "COPD",
+      "Irritant cough",
+      "Pertussis",
+      "Vocal cord dysfunction"
+    ]
+  },
+
+  "abdominal_pain": {
+    "keywords": ["abdominal pain", "belly pain", "stomach pain", "diffuse abdominal pain"],
+    "cannot_miss": [
+      "Appendicitis",
+      "Bowel obstruction",
+      "Intra-abdominal hemorrhage",
+      "Mesenteric ischemia",
+      "Diabetic ketoacidosis",
+      "Ectopic pregnancy",
+      "Ovarian torsion",
+      "Testicular torsion"
+    ],
+    "more_common": [
+      "Gastroenteritis",
+      "Functional abdominal pain/IBS",
+      "Abdominal wall pain",
+      "Constipation",
+      "Dysmenorrhea"
+    ],
+    "other": [
+      "Celiac disease",
+      "Abdominal migraine",
+      "Endometriosis",
+      "Ovarian cyst",
+      "Stress/somatization"
+    ]
+  },
+
+  "ruq_pain": {
+    "keywords": ["ruq pain", "right upper quadrant pain"],
+    "cannot_miss": [
+      "Cholecystitis",
+      "Choledocholithiasis",
+      "Cholangitis",
+      "Hepatitis",
+      "Liver abscess",
+      "Pancreatitis",
+      "Myocardial infarction",
+      "Pneumonia",
+      "Pneumothorax",
+      "Pyelonephritis",
+      "Renal colic"
+    ],
+    "more_common": [
+      "Cholelithiasis",
+      "Gastritis",
+      "Peptic ulcer disease",
+      "Functional dyspepsia",
+      "Abdominal wall pain"
+    ],
+    "other": [
+      "Pleurisy"
+    ]
+  },
+
+  "rlq_pain": {
+    "keywords": ["rlq pain", "right lower quadrant pain"],
+    "cannot_miss": [
+      "Appendicitis",
+      "Bowel obstruction",
+      "Diverticulitis",
+      "Inflammatory bowel disease",
+      "Mesenteric ischemia",
+      "Urinary stone",
+      "Testicular torsion",
+      "Ovarian torsion",
+      "Ectopic pregnancy",
+      "Pelvic inflammatory disease"
+    ],
+    "more_common": [
+      "Gastroenteritis",
+      "Colitis",
+      "Mesenteric adenitis",
+      "Ovarian cyst",
+      "Functional abdominal pain",
+      "Abdominal wall pain"
+    ],
+    "other": [
+      "Inguinal/femoral hernia"
+    ]
+  },
+
+  "nausea_vomiting": {
+    "keywords": ["nausea", "vomiting", "nausea and vomiting"],
+    "cannot_miss": [
+      "Appendicitis",
+      "Bowel obstruction",
+      "Cholecystitis",
+      "Cholangitis",
+      "Hepatitis",
+      "Pancreatitis",
+      "Diabetic ketoacidosis",
+      "Head trauma/TBI",
+      "Increased intracranial pressure",
+      "Meningitis/encephalitis",
+      "Pregnancy"
+    ],
+    "more_common": [
+      "Gastroenteritis",
+      "GERD",
+      "Functional dyspepsia",
+      "Migraine",
+      "BPPV",
+      "Otitis media",
+      "Motion sickness",
+      "Anxiety/panic disorder"
+    ],
+    "other": [
+      "Medication effect",
+      "Cyclic vomiting syndrome",
+      "Vestibular neuritis",
+      "Bulimia"
+    ]
+  },
+
+  "diarrhea": {
+    "keywords": ["diarrhea", "acute diarrhea"],
+    "cannot_miss": [
+      "Bacterial gastroenteritis",
+      "C. difficile infection",
+      "Diverticulitis",
+      "Pelvic inflammatory disease",
+      "Inflammatory bowel disease"
+    ],
+    "more_common": [
+      "Viral gastroenteritis",
+      "Food intolerance",
+      "Medication-associated diarrhea"
+    ],
+    "other": [
+      "Parasitic infection",
+      "Allergic reaction"
+    ]
+  },
+
+  "red_eye": {
+    "keywords": ["red eye", "eye redness"],
+    "cannot_miss": [
+      "Chemical burn",
+      "Corneal ulceration",
+      "Foreign body",
+      "Glaucoma",
+      "Iritis",
+      "Open globe injury"
+    ],
+    "more_common": [
+      "Conjunctivitis",
+      "Corneal abrasion",
+      "Dry eye syndrome",
+      "Scleritis"
+    ],
+    "other": [
+      "Blepharitis",
+      "Episcleritis",
+      "Subconjunctival hemorrhage"
+    ]
+  },
+
+  "eye_pain": {
+    "keywords": ["eye pain", "painful eye", "photophobia"],
+    "cannot_miss": [
+      "Chemical burn",
+      "Cluster headache",
+      "Corneal ulceration",
+      "Foreign body",
+      "Glaucoma",
+      "Iritis",
+      "Open globe injury",
+      "Optic neuritis",
+      "Orbital cellulitis"
+    ],
+    "more_common": [
+      "Conjunctivitis",
+      "Corneal abrasion",
+      "Dry eye syndrome",
+      "Scleritis"
+    ],
+    "other": [
+      "Blepharitis",
+      "Episcleritis"
+    ]
+  },
+
+  "vision_changes": {
+    "keywords": ["vision changes", "vision loss", "blurry vision", "visual changes"],
+    "cannot_miss": [
+      "Stroke",
+      "Chemical burn",
+      "Foreign body",
+      "Glaucoma",
+      "Iritis",
+      "Open globe injury",
+      "Optic neuritis",
+      "Retinal detachment",
+      "Central venous sinus thrombosis",
+      "Retinal artery thrombosis",
+      "Retinal vein thrombosis"
+    ],
+    "more_common": [
+      "Migraine headache",
+      "Conjunctivitis",
+      "Corneal abrasion",
+      "Dry eye syndrome",
+      "Scleritis"
+    ],
+    "other": []
+  },
+
+  "sore_throat": {
+    "keywords": ["sore throat", "throat pain", "difficulty swallowing", "pharyngitis"],
+    "cannot_miss": [
+      "Epiglottitis",
+      "Foreign body",
+      "Ludwig angina",
+      "Malignancy",
+      "Peritonsillar abscess",
+      "Retropharyngeal abscess",
+      "Tracheitis"
+    ],
+    "more_common": [
+      "Group A strep pharyngitis",
+      "Viral pharyngitis",
+      "Upper respiratory infection",
+      "Laryngitis",
+      "Mononucleosis/EBV"
+    ],
+    "other": [
+      "Aphthous ulcer",
+      "Esophagitis",
+      "Gonococcal pharyngitis",
+      "Herpes simplex virus"
+    ]
+  },
+
+  "palpitations": {
+    "keywords": ["palpitations", "heart racing", "irregular heartbeat"],
+    "cannot_miss": [
+      "Atrial fibrillation",
+      "Atrial flutter",
+      "Heart block",
+      "Wolff-Parkinson-White/pre-excitation tachycardia",
+      "Prolonged QT syndrome",
+      "Sick sinus syndrome",
+      "Supraventricular tachycardia",
+      "Ventricular tachycardia"
+    ],
+    "more_common": [
+      "Premature atrial contractions",
+      "Premature ventricular contractions",
+      "Stimulant/caffeine/alcohol effect",
+      "Medication effect",
+      "Anxiety/panic attack",
+      "Hypovolemia",
+      "Anemia",
+      "Fever/infection"
+    ],
+    "other": [
+      "POTS",
+      "Hyperthyroidism",
+      "Pheochromocytoma",
+      "Electrolyte disturbance"
+    ]
+  },
+
+  "dizziness_syncope": {
+    "keywords": ["dizziness", "lightheaded", "syncope", "fainted", "passed out", "near syncope"],
+    "cannot_miss": [
+      "Myocardial infarction",
+      "Arrhythmia",
+      "Cardiac tamponade",
+      "Aortic stenosis",
+      "Medication side effect",
+      "Anaphylaxis",
+      "Sepsis",
+      "Diabetic ketoacidosis",
+      "Hypoglycemia",
+      "Stroke"
+    ],
+    "more_common": [
+      "Vasovagal reaction",
+      "Orthostatic hypotension",
+      "Hypovolemia",
+      "Anxiety",
+      "Panic attack",
+      "BPPV"
+    ],
+    "other": [
+      "Hyponatremia",
+      "Hypocalcemia",
+      "Anemia"
+    ]
+  },
+
+  "headache": {
+    "keywords": ["headache", "head pain", "migraine"],
+    "cannot_miss": [
+      "Brain tumor",
+      "Cerebral venous sinus thrombosis",
+      "Cervical artery dissection",
+      "Epidural hematoma",
+      "Meningitis/encephalitis",
+      "Subarachnoid hemorrhage",
+      "Subdural hematoma",
+      "Temporal arteritis",
+      "Traumatic brain injury/concussion",
+      "Hypertensive emergency",
+      "Glaucoma"
+    ],
+    "more_common": [
+      "Migraine",
+      "Tension headache",
+      "Cluster headache",
+      "Sinusitis"
+    ],
+    "other": [
+      "Medication overuse headache",
+      "Idiopathic intracranial hypertension",
+      "TMJ/dental pain",
+      "Acute illness"
+    ]
+  },
+
+  "weakness": {
+    "keywords": ["weakness", "muscle weakness", "focal weakness"],
+    "cannot_miss": [
+      "Stroke",
+      "Brain tumor",
+      "Guillain-Barre Syndrome",
+      "Spinal cord compression",
+      "Rhabdomyolysis",
+      "Dermatomyositis/polymyositis",
+      "Botulism",
+      "Electrolyte derangement"
+    ],
+    "more_common": [
+      "Radiculopathy",
+      "Nerve entrapment"
+    ],
+    "other": [
+      "Addison disease",
+      "ALS",
+      "Thyroid disease",
+      "Lyme disease",
+      "Myasthenia gravis",
+      "Medication effect",
+      "Vitamin deficiency"
+    ]
+  },
+
+  "neck_pain": {
+    "keywords": ["neck pain", "neck stiffness"],
+    "cannot_miss": [
+      "Meningitis",
+      "Vertebral fracture",
+      "Spinal cord compression"
+    ],
+    "more_common": [
+      "Muscle strain",
+      "Muscle spasm",
+      "Degenerative disc disease"
+    ],
+    "other": [
+      "Disc bulge",
+      "Cervical radiculopathy"
+    ]
+  },
+
+  "low_back_pain": {
+    "keywords": ["low back pain", "lower back pain", "back pain"],
+    "cannot_miss": [
+      "Epidural abscess",
+      "Malignancy",
+      "Vertebral fracture",
+      "Renal colic",
+      "Aortic aneurysm",
+      "Ectopic pregnancy",
+      "Ovarian torsion",
+      "Perirectal abscess",
+      "Cauda equina syndrome"
+    ],
+    "more_common": [
+      "Functional low back pain",
+      "Degenerative disc disease",
+      "Muscle strain",
+      "Dysmenorrhea"
+    ],
+    "other": [
+      "Endometriosis",
+      "Ovarian cyst",
+      "Disc bulge",
+      "Arthritis",
+      "Pilonidal cyst"
+    ]
+  },
+
+  "extremity_swelling": {
+    "keywords": ["extremity swelling", "leg swelling", "arm swelling", "joint swelling", "swollen joint", "edema"],
+    "cannot_miss": [
+      "Heart failure",
+      "Cellulitis",
+      "Necrotizing fasciitis",
+      "Rhabdomyolysis",
+      "Compartment syndrome",
+      "Fracture",
+      "Septic arthritis",
+      "Deep venous thrombosis",
+      "Nephrotic syndrome"
+    ],
+    "more_common": [
+      "Ligament sprain",
+      "Osteoarthritis",
+      "Gout",
+      "Rheumatoid arthritis"
+    ],
+    "other": [
+      "Lymphedema"
+    ]
+  },
+
+  "ankle_pain": {
+    "keywords": ["ankle pain", "ankle injury", "ankle sprain"],
+    "cannot_miss": [
+      "Fracture"
+    ],
+    "more_common": [
+      "Ankle sprain",
+      "Tendinopathy"
+    ],
+    "other": [
+      "Bone stress injury",
+      "Gout"
+    ]
+  },
+
+  "knee_pain": {
+    "keywords": ["knee pain", "knee injury", "knee swelling"],
+    "cannot_miss": [
+      "Patellar fracture",
+      "ACL/PCL injury",
+      "Septic arthritis",
+      "Deep venous thrombosis"
+    ],
+    "more_common": [
+      "Patellofemoral pain syndrome",
+      "Patellar tendonitis",
+      "Meniscal injury",
+      "Osteoarthritis",
+      "Collateral ligament injury"
+    ],
+    "other": [
+      "Baker cyst",
+      "Gout",
+      "Prepatellar bursitis",
+      "Referred hip pain"
+    ]
+  },
+
+  "shoulder_pain": {
+    "keywords": ["shoulder pain", "shoulder injury"],
+    "cannot_miss": [
+      "Referred pain from diaphragm irritation",
+      "Clavicle fracture",
+      "Dislocation"
+    ],
+    "more_common": [
+      "Rotator cuff pathology",
+      "Biceps tendonitis",
+      "Bursitis",
+      "Impingement syndrome",
+      "Osteoarthritis",
+      "AC joint arthritis"
+    ],
+    "other": [
+      "AC joint separation",
+      "Adhesive capsulitis",
+      "Cervical radiculopathy",
+      "Labral tear"
+    ]
+  },
+
+  "wrist_hand_pain": {
+    "keywords": ["wrist pain", "hand pain", "finger pain", "thumb pain"],
+    "cannot_miss": [
+      "Radius/ulna/scaphoid fracture",
+      "Felon",
+      "Infectious tenosynovitis",
+      "Metacarpal/digital fracture"
+    ],
+    "more_common": [
+      "Carpal tunnel syndrome",
+      "Ligament sprain",
+      "Osteoarthritis",
+      "Paronychia",
+      "Trigger finger",
+      "Subungual hematoma"
+    ],
+    "other": [
+      "De Quervain tenosynovitis",
+      "Ganglion cyst",
+      "Dupuytren contracture",
+      "Raynaud phenomenon"
+    ]
+  },
+
+  "rash": {
+    "keywords": ["rash", "erythematous rash", "skin rash", "itching", "pruritus", "hives"],
+    "cannot_miss": [
+      "Anaphylaxis",
+      "Meningococcal disease",
+      "Rocky Mountain spotted fever",
+      "Lyme disease",
+      "Syphilis",
+      "Drug reaction",
+      "Necrotizing soft tissue infection"
+    ],
+    "more_common": [
+      "Tinea",
+      "Seborrheic dermatitis",
+      "Folliculitis",
+      "Contact dermatitis",
+      "Atopic dermatitis/eczema",
+      "Xerosis",
+      "Urticaria"
+    ],
+    "other": [
+      "Scabies",
+      "Insect bites",
+      "Psoriasis",
+      "Lichen planus",
+      "Medication reaction",
+      "Liver/gallbladder/kidney disease"
+    ]
+  },
+
+  "nodule_mass": {
+    "keywords": ["nodule", "mass", "lump", "bump"],
+    "cannot_miss": [
+      "Cancer",
+      "Abscess",
+      "Furuncle/carbuncle",
+      "Lymphoma",
+      "Testicular mass"
+    ],
+    "more_common": [
+      "Epidermal inclusion cyst",
+      "Pilar cyst",
+      "Ganglion cyst",
+      "Lipoma"
+    ],
+    "other": [
+      "Reactive lymph node",
+      "Dermatofibroma"
+    ]
+  },
+
+  "pelvic_pain_female": {
+    "keywords": ["pelvic pain", "female pelvic pain", "lower abdominal pain"],
+    "cannot_miss": [
+      "Ectopic pregnancy",
+      "Ovarian torsion",
+      "Pelvic inflammatory disease",
+      "Pregnancy",
+      "Placental abruption",
+      "Uterine rupture",
+      "Appendicitis",
+      "Small bowel obstruction",
+      "Urinary stone",
+      "UTI"
+    ],
+    "more_common": [
+      "Dysmenorrhea",
+      "Ovarian cyst",
+      "Endometriosis",
+      "Abdominal wall pain",
+      "Functional abdominal pain"
+    ],
+    "other": [
+      "Adenomyosis",
+      "Bartholin gland cyst",
+      "Uterine fibroids",
+      "Gastroenteritis",
+      "Hernia",
+      "Hip osteoarthritis"
+    ]
+  },
+
+  "vaginal_discharge": {
+    "keywords": ["vaginal discharge", "vaginal odor", "sti symptoms", "std symptoms"],
+    "cannot_miss": [
+      "Pelvic inflammatory disease",
+      "Chlamydia",
+      "Gonorrhea",
+      "Foreign body"
+    ],
+    "more_common": [
+      "Bacterial vaginosis",
+      "Trichomoniasis",
+      "Vaginal candidiasis"
+    ],
+    "other": [
+      "Contact dermatitis",
+      "Idiopathic vaginitis",
+      "Mycoplasma genitalium"
+    ]
+  },
+
+  "vaginal_bleeding": {
+    "keywords": ["vaginal bleeding", "abnormal vaginal bleeding"],
+    "cannot_miss": [
+      "Pregnancy",
+      "Ectopic pregnancy",
+      "Endometrial cancer",
+      "Pelvic inflammatory disease",
+      "Thrombocytopenia/bleeding disorder"
+    ],
+    "more_common": [
+      "Contraception-related bleeding",
+      "Uterine fibroids"
+    ],
+    "other": [
+      "Stress",
+      "Thyroid disease",
+      "PCOS",
+      "Adenomyosis",
+      "Prolactinoma"
+    ]
+  },
+
+  "testicular_groin_pain": {
+    "keywords": ["testicular pain", "testicle pain", "scrotal pain", "groin pain", "male pelvic pain"],
+    "cannot_miss": [
+      "Testicular torsion",
+      "Incarcerated/strangulated hernia",
+      "Orchitis",
+      "Appendicitis",
+      "Bowel obstruction",
+      "Renal colic",
+      "STI",
+      "UTI",
+      "Epididymitis"
+    ],
+    "more_common": [
+      "Varicocele",
+      "Reducible hernia"
+    ],
+    "other": [
+      "Referred hip pain",
+      "Skin/soft tissue infection"
+    ]
+  },
+
+  "ear_pain": {
+    "keywords": ["ear pain", "otalgia"],
+    "cannot_miss": [
+      "Cellulitis",
+      "Chondritis",
+      "HSV/VZV lesions/Ramsay Hunt syndrome"
+    ],
+    "more_common": [
+      "Cerumen impaction",
+      "Foreign body",
+      "Otitis externa",
+      "Otitis media",
+      "TMJ dysfunction",
+      "Referred dental pain",
+      "Tympanic membrane rupture"
+    ],
+    "other": [
+      "Meniere disease"
+    ]
+  },
+
+  "dental_oral_pain": {
+    "keywords": ["tooth pain", "dental pain", "mouth pain", "gum swelling", "jaw swelling"],
+    "cannot_miss": [
+      "Ludwig angina",
+      "Deep space infection",
+      "Airway compromise",
+      "Dental abscess with systemic symptoms"
+    ],
+    "more_common": [
+      "Dental caries",
+      "Gingivitis",
+      "Dental abscess",
+      "TMJ dysfunction",
+      "Aphthous ulcer"
+    ],
+    "other": [
+      "Referred ear pain",
+      "Sinusitis"
+    ]
+  }
+}
