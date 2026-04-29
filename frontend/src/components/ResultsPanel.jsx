@@ -1,5 +1,7 @@
 import { useEffect, useState } from "react";
 
+const API_BASE_URL = "https://idmt-ai-medical-preceptor.onrender.com";
+
 function normalizeList(value) {
   if (!value) return [];
   if (Array.isArray(value)) return value;
@@ -25,74 +27,86 @@ function GuidanceList({ items, loadingAI }) {
     </ul>
   );
 }
-  return (
-    <ul className="mt-2 list-disc space-y-1 pl-5 text-sm">
-      {list.map((item, index) => (
-        <li key={index}>{typeof item === "string" ? item : JSON.stringify(item)}</li>
-      ))}
-    </ul>
-  );
-}
 
 export default function ResultsPanel({ caseData }) {
   const [protocolResults, setProtocolResults] = useState([]);
   const [aiGuidance, setAiGuidance] = useState(null);
+  const [loadingSources, setLoadingSources] = useState(false);
   const [loadingAI, setLoadingAI] = useState(false);
+  const [sourceError, setSourceError] = useState("");
   const [aiError, setAiError] = useState("");
 
   useEffect(() => {
     if (!caseData?.chiefComplaint) return;
 
-    async function runGuidance() {
-      setLoadingAI(true);
-      setAiError("");
+    async function fetchSources() {
+      setLoadingSources(true);
+      setSourceError("");
+      setProtocolResults([]);
+      setAiGuidance(null);
 
       try {
-        const searchRes = await fetch("https://127.0.0.1:8000/api/search", {
+        const searchRes = await fetch(`${API_BASE_URL}/api/search`, {
           method: "POST",
           headers: { "Content-Type": "application/json" },
           body: JSON.stringify({ query: caseData.chiefComplaint }),
         });
 
+        if (!searchRes.ok) {
+          throw new Error("Protocol search failed.");
+        }
+
         const searchData = await searchRes.json();
-        const results = searchData.results || [];
-        setProtocolResults(results);
-
-        const aiRes = await fetch("https://idmt-ai-medical-preceptor.onrender.com/api/generate-guidance", {
-          method: "POST",
-          headers: { "Content-Type": "application/json" },
-          body: JSON.stringify({
-            case_data: caseData,
-            protocol_results: results,
-          }),
-        });
-
-        if (!aiRes.ok) {
-          throw new Error("AI guidance request failed.");
-        }
-
-        const aiData = await aiRes.json();
-        let parsed = aiData.guidance;
-
-        if (typeof parsed === "string") {
-          parsed = parsed
-            .replace(/```json/g, "")
-            .replace(/```/g, "")
-            .trim();
-
-          parsed   
-        }
-
-        setAiGuidance(parsed);
+        setProtocolResults(searchData.results || []);
       } catch (error) {
-        setAiError(error.message || "Unable to generate AI guidance.");
+        setSourceError(error.message || "Unable to retrieve protocol sources.");
       } finally {
-        setLoadingAI(false);
+        setLoadingSources(false);
       }
     }
 
-    runGuidance();
+    fetchSources();
   }, [caseData]);
+
+  async function generateAIGuidance() {
+    if (!caseData) return;
+
+    setLoadingAI(true);
+    setAiError("");
+
+    try {
+      const aiRes = await fetch(`${API_BASE_URL}/api/generate-guidance`, {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          case_data: caseData,
+          protocol_results: protocolResults,
+        }),
+      });
+
+      if (!aiRes.ok) {
+        throw new Error("AI guidance request failed.");
+      }
+
+      const aiData = await aiRes.json();
+      let parsed = aiData.guidance;
+
+      if (typeof parsed === "string") {
+        parsed = parsed
+          .replace(/```json/g, "")
+          .replace(/```/g, "")
+          .trim();
+
+        parsed = JSON.parse(parsed);
+      }
+
+      setAiGuidance(parsed);
+    } catch (error) {
+      setAiError(error.message || "Unable to generate AI guidance.");
+    } finally {
+      setLoadingAI(false);
+    }
+  }
 
   if (!caseData) {
     return (
@@ -124,8 +138,21 @@ export default function ResultsPanel({ caseData }) {
       <section className="rounded-2xl border bg-white p-5 shadow-sm">
         <h2 className="text-2xl font-bold text-slate-900">Preceptor Guidance</h2>
         <p className="mt-1 text-sm text-slate-600">
-          AI-generated guidance using case data and retrieved protocol source matches.
+          Review protocol source matches first, then generate AI-assisted preceptor guidance.
         </p>
+
+        <button
+          type="button"
+          onClick={generateAIGuidance}
+          disabled={loadingAI || loadingSources}
+          className="mt-4 w-full rounded-xl bg-blue-700 px-5 py-3 font-semibold text-white disabled:opacity-60 md:w-auto"
+        >
+          {loadingAI ? "Generating Guidance..." : "Generate Preceptor Guidance"}
+        </button>
+
+        {loadingSources && (
+          <p className="mt-3 text-sm text-blue-700">Retrieving protocol source matches...</p>
+        )}
       </section>
 
       <section className="rounded-2xl border border-yellow-200 bg-yellow-50 p-4 shadow-sm">
@@ -137,30 +164,31 @@ export default function ResultsPanel({ caseData }) {
         </p>
       </section>
 
-      {loadingAI && (
-        <section className="rounded-2xl border bg-blue-50 p-4 text-sm text-blue-900">
-          Generating AI preceptor guidance...
+      {sourceError && (
+        <section className="rounded-2xl border bg-red-50 p-4 text-sm text-red-900">
+          Protocol retrieval unavailable: {sourceError}
         </section>
       )}
 
       {aiError && (
-  <section className="rounded-2xl border bg-red-50 p-4 text-sm text-red-900">
-    <p>AI guidance unavailable: {aiError}</p>
-    <button
-      className="mt-3 rounded-lg bg-red-700 px-4 py-2 font-semibold text-white"
-      onClick={() => window.location.reload()}
-    >
-      Retry Guidance
-    </button>
-  </section>
-)}
+        <section className="rounded-2xl border bg-red-50 p-4 text-sm text-red-900">
+          <p>AI guidance unavailable: {aiError}</p>
+          <button
+            type="button"
+            className="mt-3 rounded-lg bg-red-700 px-4 py-2 font-semibold text-white"
+            onClick={generateAIGuidance}
+          >
+            Retry Guidance
+          </button>
+        </section>
+      )}
 
       <section className="rounded-2xl border border-red-100 bg-red-50 p-5 shadow-sm">
         <h3 className="text-lg font-bold text-red-800">1. Immediate Red Flags</h3>
         {aiGuidance ? (
-          <GuidanceList items={aiGuidance.immediate_red_flags} />
+          <GuidanceList items={aiGuidance.immediate_red_flags} loadingAI={loadingAI} />
         ) : selectedRedFlags.length > 0 ? (
-          <GuidanceList items={selectedRedFlags} />
+          <GuidanceList items={selectedRedFlags} loadingAI={loadingAI} />
         ) : (
           <p className="mt-2 text-sm text-red-900">No red flags selected.</p>
         )}
@@ -175,23 +203,23 @@ export default function ResultsPanel({ caseData }) {
           </div>
           <div>
             <h4 className="font-semibold">More Common</h4>
-            <GuidanceList items={aiGuidance?.differential_more_common} />
+            <GuidanceList items={aiGuidance?.differential_more_common} loadingAI={loadingAI} />
           </div>
           <div>
             <h4 className="font-semibold">Other</h4>
-            <GuidanceList items={aiGuidance?.differential_other} />
+            <GuidanceList items={aiGuidance?.differential_other} loadingAI={loadingAI} />
           </div>
         </div>
       </section>
 
       <section className="rounded-2xl border bg-white p-5 shadow-sm">
         <h3 className="text-lg font-bold text-blue-800">3. What to Ask / Check Next</h3>
-        <GuidanceList items={aiGuidance?.ask_check_next} />
+        <GuidanceList items={aiGuidance?.ask_check_next} loadingAI={loadingAI} />
       </section>
 
       <section className="rounded-2xl border border-green-100 bg-green-50 p-5 shadow-sm">
         <h3 className="text-lg font-bold text-green-800">4. Protocol-Supported Recommendations</h3>
-        <GuidanceList items={aiGuidance?.protocol_supported_recommendations} />
+        <GuidanceList items={aiGuidance?.protocol_supported_recommendations} loadingAI={loadingAI} />
 
         <div className="mt-4 space-y-3">
           {protocolResults.slice(0, 5).map((item, index) => (
@@ -203,21 +231,27 @@ export default function ResultsPanel({ caseData }) {
             </details>
           ))}
         </div>
+
+        {!loadingSources && protocolResults.length === 0 && (
+          <p className="mt-3 text-sm text-slate-700">
+            No protocol source matches found. Upload/index the protocol book or refine the chief complaint.
+          </p>
+        )}
       </section>
 
       <section className="rounded-2xl border bg-white p-5 shadow-sm">
         <h3 className="text-lg font-bold text-blue-800">5. Medication Guidance</h3>
-        <GuidanceList items={aiGuidance?.medication_guidance} />
+        <GuidanceList items={aiGuidance?.medication_guidance} loadingAI={loadingAI} />
       </section>
 
       <section className="rounded-2xl border bg-white p-5 shadow-sm">
         <h3 className="text-lg font-bold text-blue-800">6. IDMT Assessment & Plan Review</h3>
-        <GuidanceList items={aiGuidance?.assessment_plan_review} />
+        <GuidanceList items={aiGuidance?.assessment_plan_review} loadingAI={loadingAI} />
       </section>
 
       <section className="rounded-2xl border border-red-100 bg-red-50 p-5 shadow-sm">
         <h3 className="text-lg font-bold text-red-800">7. Call Preceptor / Evacuate</h3>
-        <GuidanceList items={aiGuidance?.call_preceptor_evacuate} />
+        <GuidanceList items={aiGuidance?.call_preceptor_evacuate} loadingAI={loadingAI} />
       </section>
 
       <section className="rounded-2xl border bg-white p-5 shadow-sm">
@@ -226,7 +260,7 @@ export default function ResultsPanel({ caseData }) {
           <p><strong>Data completeness:</strong> {dataCompleteness}</p>
           <p><strong>Protocol support:</strong> {protocolSupport}</p>
         </div>
-        <GuidanceList items={aiGuidance?.confidence_data_integrity} />
+        <GuidanceList items={aiGuidance?.confidence_data_integrity} loadingAI={loadingAI} />
       </section>
 
       <section className="rounded-2xl border bg-slate-50 p-5 text-sm shadow-sm">
