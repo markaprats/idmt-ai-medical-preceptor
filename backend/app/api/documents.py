@@ -277,7 +277,7 @@ ask_check_next
 protocol_supported_recommendations
 general_clinical_reasoning
 medication_guidance
-assessment_plan_review
+assessment_plan_review must be a list of 3 to 6 short critique statements. It must address whether the entered assessment and plan are reasonable, incomplete, unsupported, unsafe, or inconsistent with the case.
 call_preceptor_evacuate
 confidence_data_integrity
 safety_disclaimer
@@ -303,6 +303,21 @@ Medication Guidance requirements:
 - If dosing is not supported by retrieved source, say: "Dose not provided in retrieved source. Verify in protocol before administration."
 - Include safety considerations when relevant: allergies, contraindications, pregnancy status, weight-based dosing, and scope-of-practice limitations.
 - If no medications are appropriate, explicitly state that medication is not indicated at this time.
+
+Assessment and Plan Review requirements:
+- Do NOT assume the entered assessment or plan is correct.
+- Compare the user-entered assessment and plan against the chief complaint, HPI, vitals, exam, red flags, differential diagnoses, and retrieved protocol sources.
+- If the entered assessment appears inconsistent with the case, explicitly say so.
+- Identify unsafe, excessive, unsupported, or out-of-scope plan elements.
+- Identify missing assessment elements that should be clarified before treatment.
+- If the plan includes medication, verify whether the medication class and route are supported by the case and retrieved source text.
+- Do not endorse antibiotics, IV medications, evacuation decisions, or procedures unless supported by the clinical picture and protocol source.
+- Use direct language:
+  - "Assessment concern:"
+  - "Plan concern:"
+  - "Potential mismatch:"
+  - "Safer next step:"
+- For example, if a rash appears consistent with atopic dermatitis but the entered assessment is cellulitis with IV vancomycin, say that cellulitis is not clearly supported by the provided findings and IV vancomycin is not supported without systemic toxicity, rapidly progressive infection, severe cellulitis, or protocol authority.
 
 confidence_data_integrity requirements:
 - Must be a short sentence or short list of sentences.
