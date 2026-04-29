@@ -1,0 +1,123 @@
+{
+  "universal_red_flags": [
+    "Airway compromise",
+    "Severe respiratory distress",
+    "Hemodynamic instability",
+    "Altered mental status",
+    "Uncontrolled bleeding",
+    "Severe pain out of proportion",
+    "Rapid clinical deterioration",
+    "Inability to obtain vital signs"
+  ],
+  "chief_complaint_categories": {
+    "chest_pain": {
+      "keywords": ["chest pain", "chest tightness", "pressure in chest", "substernal pain", "arm pain", "jaw pain"],
+      "red_flags": [
+        "Pain radiating to arm/jaw/neck",
+        "Diaphoresis",
+        "Shortness of breath",
+        "Nausea/vomiting",
+        "Syncope or near-syncope",
+        "Pain not reproducible with movement"
+      ]
+    },
+    "difficulty_breathing": {
+      "keywords": ["shortness of breath", "dyspnea", "breathing difficulty", "can't breathe", "wheezing", "coughing"],
+      "red_flags": [
+        "Use of accessory muscles",
+        "Inability to speak full sentences",
+        "Cyanosis",
+        "Stridor",
+        "Severe tachypnea >30/min",
+        "SpO2 <90% on room air"
+      ]
+    },
+    "abdominal_pain": {
+      "keywords": ["stomach pain", "abdominal pain", "belly pain", "nausea", "vomiting", "diarrhea"],
+      "red_flags": [
+        "Severe abdominal pain",
+        "Rigidity or guarding",
+        "Rebound tenderness",
+        "Bloody stool or melena",
+        "Persistent vomiting",
+        "Unable to tolerate oral fluids"
+      ]
+    },
+    "headache": {
+      "keywords": ["headache", "head pain", "migraine", "sinus pressure", "head hurt"],
+      "red_flags": [
+        "Sudden severe headache (thunderclap)",
+        "Altered mental status",
+        "Neck stiffness",
+        "Focal neurological deficits",
+        "Seizure",
+        "Visual changes",
+        "Head trauma mechanism"
+      ]
+    },
+    "altered_mental_status": {
+      "keywords": ["confusion", "altered mental status", "not making sense", "unresponsive", "lethargy", "delirium"],
+      "red_flags": [
+        "Unable to maintain airway",
+        "Glasgow <13",
+        "New focal deficits",
+        "Seizure activity",
+        "Hypoglycemia",
+        "Toxic exposure suspected"
+      ]
+    },
+    "trauma": {
+      "keywords": ["trauma", "injury", "bleeding", "fracture", "burn", "laceration", "crash", "fall"],
+      "red_flags": [
+        "Airway compromise",
+        "Uncontrolled hemorrhage",
+        "Tension pneumothorax",
+        "Flail chest",
+        "Spinal cord injury suspected",
+        "GCS <13",
+        "Hemodynamic instability"
+      ]
+    },
+    "environmental": {
+      "keywords": ["heat", "cold", "hypothermia", "heat stroke", "altitude", "drowning", "electrical"],
+      "red_flags": [
+        "Core temp <32°C or >40°C",
+        "Altered mental status",
+        "Seizures",
+        "Cardiac arrhythmia",
+        "Loss of consciousness"
+      ]
+    },
+    "allergic_reaction": {
+      "keywords": ["allergy", "allergic reaction", "hives", "swelling", "anaphylaxis", "bee sting"],
+      "red_flags": [
+        "Airway swelling/angioedema",
+        "Wheezing/bronchospasm",
+        "Hypotension",
+        "Tongue or lip swelling",
+        "Multiple system involvement"
+      ]
+    },
+    "medication_issue": {
+      "keywords": ["overdose", "medication error", "drug reaction", "side effect", "poisoning"],
+      "red_flags": [
+        "Respiratory depression",
+        "Altered mental status",
+        "Seizures",
+        "Cardiac arrhythmia",
+        "QRS widening",
+        "Acidosis on labs"
+      ]
+    },
+    "psychiatric": {
+      "keywords": ["suicide", "self harm", "depression", "anxiety", "psychosis", "behavior"],
+      "red_flags": [
+        "Suicidal ideation with plan",
+        "Violent behavior",
+        "Command hallucinations",
+        "Catatonia",
+        "Unable to care for self"
+      ]
+    }
+  }
+}
