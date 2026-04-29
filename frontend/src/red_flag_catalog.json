@@ -22,14 +22,30 @@
       ]
     },
     "difficulty_breathing": {
-      "keywords": ["shortness of breath", "dyspnea", "breathing difficulty", "can't breathe", "wheezing", "coughing"],
+      "keywords": ["shortness of breath", "sob", "dyspnea", "breathing difficulty", "can't breathe", "trouble breathing", "wheezing", "cough", "coughing", "productive cough"],
       "red_flags": [
         "Use of accessory muscles",
         "Inability to speak full sentences",
         "Cyanosis",
         "Stridor",
         "Severe tachypnea >30/min",
-        "SpO2 <90% on room air"
+        "SpO2 <90% on room air",
+        "Hemoptysis",
+        "Pleuritic chest pain"
+      ]
+    },
+    "cough": {
+      "keywords": ["cough", "coughing", "productive cough", "dry cough", "coughing blood", "hemoptysis", "persistent cough"],
+      "red_flags": [
+        "Hemoptysis",
+        "SpO2 <90% on room air",
+        "Severe shortness of breath",
+        "Chest pain with cough",
+        "Fever with respiratory distress",
+        "Cyanosis",
+        "Inability to speak full sentences",
+        "Immunocompromised patient",
+        "Persistent or worsening symptoms"
       ]
     },
     "abdominal_pain": {
@@ -76,6 +92,172 @@
         "Spinal cord injury suspected",
         "GCS <13",
         "Hemodynamic instability"
+      ]
+    },
+    "extremity_pain": {
+      "keywords": ["extremity pain", "arm pain", "leg pain", "hand pain", "foot pain", "knee pain", "ankle pain", "shoulder pain", "wrist pain", "joint pain", "joint swelling", "swollen joint", "limb pain", "sprain", "strain"],
+      "red_flags": [
+        "Neurovascular compromise",
+        "Cold, pale, or pulseless extremity",
+        "Numbness, tingling, or weakness",
+        "Severe pain with passive stretch",
+        "Pain out of proportion",
+        "Rapid swelling after injury",
+        "Obvious deformity",
+        "Open fracture or open wound over joint",
+        "Inability to bear weight",
+        "Red, hot, swollen joint",
+        "Fever with joint pain"
+      ]
+    },
+    "rash_skin": {
+      "keywords": ["rash", "skin rash", "hives", "cellulitis", "skin infection", "abscess", "wound infection", "itching", "lesion", "blister", "skin redness"],
+      "red_flags": [
+        "Fever with rash",
+        "Rapidly spreading rash",
+        "Mucosal involvement",
+        "Petechiae or purpura",
+        "Skin sloughing or blistering",
+        "Severe pain out of proportion",
+        "Signs of anaphylaxis",
+        "Facial, lip, tongue, or throat swelling",
+        "Red streaking or rapidly worsening cellulitis",
+        "Immunocompromised patient"
+      ]
+    },
+    "eye_complaint": {
+      "keywords": ["eye pain", "red eye", "vision change", "vision loss", "blurry vision", "eye injury", "foreign body eye", "chemical exposure eye", "eye swelling", "photophobia"],
+      "red_flags": [
+        "Vision loss or acute vision change",
+        "Severe eye pain",
+        "Chemical exposure",
+        "Penetrating eye trauma",
+        "Foreign body with vision change",
+        "Photophobia",
+        "Irregular pupil",
+        "Hyphema or blood in anterior chamber",
+        "Contact lens wearer with painful red eye",
+        "Pain with eye movement"
+      ]
+    },
+    "sore_throat_uri": {
+      "keywords": ["sore throat", "throat pain", "pharyngitis", "uri", "upper respiratory infection", "congestion", "runny nose", "sinus pain", "ear pain", "difficulty swallowing"],
+      "red_flags": [
+        "Airway compromise",
+        "Drooling or inability to handle secretions",
+        "Stridor",
+        "Severe difficulty swallowing",
+        "Neck swelling",
+        "Trismus",
+        "Muffled voice",
+        "Toxic appearance",
+        "Unilateral tonsillar swelling or uvular deviation",
+        "Respiratory distress"
+      ]
+    },
+    "fever_infection": {
+      "keywords": ["fever", "chills", "rigors", "infection", "sepsis", "body aches", "malaise", "night sweats", "febrile", "high temperature"],
+      "red_flags": [
+        "Hypotension",
+        "Tachycardia out of proportion",
+        "Altered mental status",
+        "Respiratory distress",
+        "Non-blanching rash",
+        "Neck stiffness",
+        "Persistent high fever",
+        "Rigors",
+        "Toxic appearance",
+        "Immunocompromised patient",
+        "Concern for sepsis"
+      ]
+    },
+    "urinary_symptoms": {
+      "keywords": ["urinary symptoms", "burning with urination", "dysuria", "frequency", "urgency", "hematuria", "flank pain", "kidney pain", "uti", "urinary tract infection"],
+      "red_flags": [
+        "Fever with urinary symptoms",
+        "Flank pain",
+        "Vomiting or inability to tolerate oral fluids",
+        "Gross hematuria",
+        "Severe abdominal or back pain",
+        "Pregnancy or possible pregnancy",
+        "Male patient with systemic symptoms",
+        "Signs of sepsis",
+        "Urinary retention",
+        "Immunocompromised patient"
+      ]
+    },
+    "vaginal_discharge_pelvic": {
+      "keywords": ["vaginal discharge", "vaginal bleeding", "pelvic pain", "lower abdominal pain", "std symptoms", "sti symptoms", "painful intercourse", "vaginal odor", "pregnancy", "possible pregnancy"],
+      "red_flags": [
+        "Pregnancy or possible pregnancy",
+        "Severe pelvic or abdominal pain",
+        "Fever",
+        "Syncope or near-syncope",
+        "Heavy vaginal bleeding",
+        "Shoulder pain with pregnancy concern",
+        "Signs of sepsis",
+        "Cervical motion tenderness if assessed",
+        "Foul discharge with systemic symptoms",
+        "Sexual assault concern"
+      ]
+    },
+    "back_pain": {
+      "keywords": ["back pain", "low back pain", "lower back pain", "mid back pain", "spine pain", "neck pain", "sciatica", "back injury"],
+      "red_flags": [
+        "Bowel or bladder dysfunction",
+        "Saddle anesthesia",
+        "New weakness or numbness",
+        "Fever with back pain",
+        "Trauma mechanism",
+        "Severe unrelenting pain",
+        "History of cancer",
+        "Intravenous drug use or infection risk",
+        "Immunocompromised patient",
+        "Midline spinal tenderness"
+      ]
+    },
+    "dizziness_syncope": {
+      "keywords": ["dizziness", "lightheaded", "syncope", "passed out", "fainted", "near syncope", "vertigo", "loss of consciousness"],
+      "red_flags": [
+        "Syncope during exertion",
+        "Chest pain",
+        "Shortness of breath",
+        "Palpitations",
+        "Abnormal vital signs",
+        "Focal neurologic deficit",
+        "Persistent altered mental status",
+        "Head injury from fall",
+        "Recurrent syncope",
+        "Known cardiac history"
+      ]
+    },
+    "testicular_pain": {
+      "keywords": ["testicular pain", "testicle pain", "scrotal pain", "testicular swelling", "scrotal swelling", "groin pain"],
+      "red_flags": [
+        "Sudden severe testicular pain",
+        "High-riding testicle",
+        "Testicular swelling",
+        "Nausea or vomiting with testicular pain",
+        "Fever",
+        "Severe lower abdominal or groin pain",
+        "Trauma to groin or testicle",
+        "Signs of sepsis",
+        "Concern for torsion"
+      ]
+    },
+    "dental_oral": {
+      "keywords": ["tooth pain", "dental pain", "mouth pain", "oral pain", "gum swelling", "dental abscess", "jaw swelling", "facial swelling"],
+      "red_flags": [
+        "Airway compromise",
+        "Difficulty swallowing",
+        "Drooling",
+        "Trismus",
+        "Floor of mouth swelling",
+        "Rapidly spreading facial swelling",
+        "Fever with facial swelling",
+        "Toxic appearance",
+        "Eye swelling or vision changes",
+        "Neck swelling"
       ]
     },
     "environmental": {

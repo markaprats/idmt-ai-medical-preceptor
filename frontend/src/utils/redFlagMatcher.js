@@ -45,7 +45,7 @@ function calculateMatchScore(complaint, keywords) {
     }
   }
 
-  return Math.min(matches / total, 1.0);
+  return Math.min(matches, 1.0);
 }
 
 /**
