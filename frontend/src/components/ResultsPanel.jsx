@@ -39,6 +39,54 @@ function GuidanceList({ items, loadingAI, fallback = [] }) {
   return <p className="text-sm text-slate-600">No additional guidance generated.</p>;
 }
 
+function SourceCheckList({ protocolResults }) {
+  if (!protocolResults || protocolResults.length === 0) {
+    return (
+      <p className="mt-2 text-sm text-slate-700">
+        No protocol source match found. Use clinical judgment, stabilize as needed, and contact a preceptor or evacuate when appropriate.
+      </p>
+    );
+  }
+
+  return (
+    <div className="mt-4 space-y-3">
+      <div className="rounded-xl border bg-white p-4">
+        <h4 className="font-semibold text-green-900">Sources to Verify</h4>
+        <p className="mt-1 text-sm text-slate-600">
+          These are retrieval matches for verification. Source excerpts are hidden by default because extracted text may lack surrounding document context.
+        </p>
+
+        <ul className="mt-3 space-y-2 text-sm">
+          {protocolResults.slice(0, 5).map((item, index) => (
+            <li key={index} className="rounded-lg bg-green-50 p-2">
+              <span className="font-semibold">Source {index + 1}:</span>{" "}
+              {item.document_name} · Page {item.page_number}
+            </li>
+          ))}
+        </ul>
+      </div>
+
+      <details className="rounded-xl border bg-white p-4 text-sm">
+        <summary className="cursor-pointer font-semibold text-slate-800">
+          View retrieved source excerpts
+        </summary>
+        <div className="mt-3 space-y-3">
+          {protocolResults.slice(0, 5).map((item, index) => (
+            <div key={index} className="rounded-lg border bg-slate-50 p-3">
+              <p className="font-semibold">
+                Source {index + 1}: {item.document_name} · Page {item.page_number}
+              </p>
+              <p className="mt-2 whitespace-pre-wrap text-slate-700">
+                {item.snippet}
+              </p>
+            </div>
+          ))}
+        </div>
+      </details>
+    </div>
+  );
+}
+
 export default function ResultsPanel({ caseData }) {
   const [protocolResults, setProtocolResults] = useState([]);
   const [aiGuidance, setAiGuidance] = useState(null);
@@ -178,8 +226,8 @@ export default function ResultsPanel({ caseData }) {
 
   const protocolRecommendationFallback = protocolResults.length > 0
     ? [
-        "Review the retrieved protocol source matches below.",
-        "Use the source text to verify scope of care, escalation triggers, and any medication guidance.",
+        "Review the listed protocol source pages for verification.",
+        "Use the source references to confirm scope of care, escalation triggers, and any medication guidance.",
         "If the source does not directly support an action, consult a preceptor or escalate care as appropriate."
       ]
     : [
@@ -301,29 +349,15 @@ export default function ResultsPanel({ caseData }) {
       </section>
 
       <section className="rounded-2xl border border-green-100 bg-green-50 p-5 shadow-sm">
-        <h3 className="text-lg font-bold text-green-800">4. Protocol-Supported Recommendations</h3>
+        <h3 className="text-lg font-bold text-green-800">4. Protocol Alignment / Source Check</h3>
+
         <GuidanceList
           items={aiGuidance?.protocol_supported_recommendations}
           loadingAI={loadingAI}
           fallback={protocolRecommendationFallback}
         />
 
-        <div className="mt-4 space-y-3">
-          {protocolResults.slice(0, 5).map((item, index) => (
-            <details key={index} className="rounded-xl border bg-white p-3 text-sm">
-              <summary className="cursor-pointer font-semibold">
-                Source {index + 1}: {item.document_name} · Page {item.page_number}
-              </summary>
-              <p className="mt-2 text-slate-700">{item.snippet}</p>
-            </details>
-          ))}
-        </div>
-
-        {!loadingSources && protocolResults.length === 0 && (
-          <p className="mt-3 text-sm text-slate-700">
-            No protocol source matches found. Upload/index the protocol book or refine the chief complaint.
-          </p>
-        )}
+        <SourceCheckList protocolResults={protocolResults} />
       </section>
 
       <section className="rounded-2xl border bg-white p-5 shadow-sm">
