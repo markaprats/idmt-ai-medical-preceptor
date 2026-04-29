@@ -8,6 +8,7 @@ backend/data/chunks.json
 
 # Node
 node_modules/
+frontend/dist/
 
 # Environment / secrets
 .env
