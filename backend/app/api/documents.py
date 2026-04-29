@@ -1,17 +1,23 @@
-"""Document upload, extraction, and simple search endpoints"""
+"""Document upload, extraction, search, and AI guidance endpoints"""
 import json
+import os
 import re
 from pathlib import Path
 from typing import List, Optional
-from fastapi import APIRouter, UploadFile, File, HTTPException
-from pydantic import BaseModel
+
 import fitz  # PyMuPDF
+from dotenv import load_dotenv
+from fastapi import APIRouter, UploadFile, File, HTTPException
+from openai import OpenAI
+from pydantic import BaseModel
 
 router = APIRouter()
 
-import os
+load_dotenv()
 
-# Use persistent disk if available (Render), otherwise fallback locally
+client = OpenAI(api_key=os.getenv("OPENAI_API_KEY"))
+OPENAI_MODEL = os.getenv("OPENAI_MODEL", "gpt-4o-mini")
+
 BASE_DATA_DIR = Path(os.getenv("DATA_DIR", Path(__file__).parent.parent.parent / "data"))
 
 DATA_DIR = BASE_DATA_DIR
@@ -20,7 +26,6 @@ UPLOADS_DIR = DATA_DIR / "uploads"
 INDEX_DIR = DATA_DIR / "index"
 CHUNKS_FILE = DATA_DIR / "chunks.json"
 
-# Ensure directories exist
 DATA_DIR.mkdir(parents=True, exist_ok=True)
 DOCS_DIR.mkdir(parents=True, exist_ok=True)
 UPLOADS_DIR.mkdir(parents=True, exist_ok=True)
@@ -48,6 +53,11 @@ class PDFUploadResponse(BaseModel):
 
 class SearchRequest(BaseModel):
     query: str
+
+
+class GenerateGuidanceRequest(BaseModel):
+    case_data: dict
+    protocol_results: List[dict]
 
 
 def chunk_text(text: str, chunk_size: int = 1200, overlap: int = 200):
@@ -93,6 +103,7 @@ def score_chunk(query: str, text: str):
         return 0
 
     score = 0
+
     for term in query_terms:
         if term in text_lower:
             score += 1
@@ -217,6 +228,102 @@ async def search_documents(request: SearchRequest):
     }
 
 
+@router.post("/generate-guidance")
+async def generate_guidance(request: GenerateGuidanceRequest):
+    case_data = request.case_data
+    protocol_results = request.protocol_results
+
+    source_text = "\n\n".join(
+        [
+            f"Source {i + 1}: {item.get('document_name')} page {item.get('page_number')}\n{item.get('snippet')}"
+            for i, item in enumerate(protocol_results[:5])
+        ]
+    )
+
+    system_prompt = """
+You are an IDMT AI Medical Preceptor prototype.
+
+You support clinical reasoning for Independent Duty Medical Technicians.
+
+Rules:
+- This is not a diagnosis.
+- Do not replace clinical judgment.
+- Do not invent protocol authority.
+- Use only provided protocol source text for protocol-supported recommendations.
+- If sources do not support a recommendation, say so.
+- Medication dosing may only be included if present in provided source text.
+- If no direct protocol support exists, recommend stabilization, reassessment, preceptor consultation, and evacuation/escalation as clinically appropriate.
+- Be conservative for red flags, unstable vitals, or missing critical data.
+- Keep output concise and operational.
+- Return valid JSON only. Do not use markdown. Do not wrap response in code fences.
+"""
+
+    user_prompt = f"""
+CASE DATA:
+{case_data}
+
+ADDITIONAL CLINICAL NOTES:
+{case_data.get("clinicalNotes", "None provided")}
+
+RETRIEVED PROTOCOL SOURCES:
+{source_text}
+
+Return JSON only with these exact keys:
+immediate_red_flags
+differential_cannot_miss
+differential_more_common
+differential_other
+ask_check_next
+protocol_supported_recommendations
+general_clinical_reasoning
+medication_guidance
+assessment_plan_review
+call_preceptor_evacuate
+confidence_data_integrity
+safety_disclaimer
+
+Differential requirements:
+- differential_cannot_miss must contain 3 to 5 diagnoses or dangerous conditions.
+- differential_more_common must contain 3 to 5 likely/common diagnoses.
+- differential_other must contain 2 to 4 additional reasonable possibilities.
+- If evidence is limited, still provide a broad differential and clearly mark uncertainty.
+- Avoid returning only one diagnosis unless the case is extremely specific and the limitation is explicitly explained.
+- Prioritize life threats first.
+- Use the case data, red flags, vitals, chief complaint, clinical notes, and protocol source matches.
+
+ask_check_next requirements:
+- Always provide at least 5 practical next questions, exam checks, reassessments, or missing data items.
+- Include missing vitals, OPQRST gaps, focused exam gaps, and pertinent positives/negatives when relevant.
+
+confidence_data_integrity requirements:
+- Must be a short sentence or short list of sentences.
+- Do NOT return a number.
+- Example: "Moderate confidence because chief complaint and vitals are present, but focused exam and timeline details are limited."
+"""
+
+    try:
+        response = client.chat.completions.create(
+            model=OPENAI_MODEL,
+            messages=[
+                {"role": "system", "content": system_prompt},
+                {"role": "user", "content": user_prompt},
+            ],
+            temperature=0.2,
+            response_format={"type": "json_object"},
+        )
+
+        content = response.choices[0].message.content
+
+        return {
+            "guidance": content,
+            "model": OPENAI_MODEL,
+            "sources_used": len(protocol_results[:5]),
+        }
+
+    except Exception as e:
+        raise HTTPException(status_code=500, detail=f"AI generation failed: {str(e)}")
+
+
 @router.post("/documents/upload")
 async def upload_document(file: UploadFile = File(...)):
     return await upload_pdf(file)
@@ -249,86 +356,3 @@ async def get_index_status():
         "documents": documents,
         "status": "ready" if chunks else "empty",
     }
-import os
-from openai import OpenAI
-from dotenv import load_dotenv
-
-load_dotenv()
-
-client = OpenAI(api_key=os.getenv("OPENAI_API_KEY"))
-OPENAI_MODEL = os.getenv("OPENAI_MODEL", "gpt-4.1-mini")
-
-
-class GenerateGuidanceRequest(BaseModel):
-    case_data: dict
-    protocol_results: List[dict]
-
-
-@router.post("/generate-guidance")
-async def generate_guidance(request: GenerateGuidanceRequest):
-    case_data = request.case_data
-    protocol_results = request.protocol_results
-
-    source_text = "\n\n".join([
-        f"Source {i + 1}: {item.get('document_name')} page {item.get('page_number')}\n{item.get('snippet')}"
-        for i, item in enumerate(protocol_results[:5])
-    ])
-
-    system_prompt = """
-You are an IDMT AI Medical Preceptor prototype.
-
-Rules:
-- This is not a diagnosis.
-- Do not replace clinical judgment.
-- Do not invent protocol authority.
-- Use only provided protocol source text for protocol-supported recommendations.
-- If sources do not support a recommendation, say so.
-- Medication dosing may only be included if present in provided source text.
-- If no direct protocol support exists, recommend stabilization, reassessment, preceptor consultation, and evacuation/escalation as clinically appropriate.
-- Be conservative for red flags, unstable vitals, or missing critical data.
-- Keep output concise and operational.
-- Return valid JSON only.
-"""
-
-    user_prompt = f"""
-CASE DATA:
-{case_data}
-
-RETRIEVED PROTOCOL SOURCES:
-{source_text}
-
-Return JSON only with these keys:
-immediate_red_flags
-differential_cannot_miss
-differential_more_common
-differential_other
-ask_check_next
-protocol_supported_recommendations
-general_clinical_reasoning
-medication_guidance
-assessment_plan_review
-call_preceptor_evacuate
-confidence_data_integrity
-safety_disclaimer
-"""
-
-    try:
-        response = client.chat.completions.create(
-            model=OPENAI_MODEL,
-            messages=[
-                {"role": "system", "content": system_prompt},
-                {"role": "user", "content": user_prompt},
-            ],
-            temperature=0.2,
-        )
-
-        content = response.choices[0].message.content
-
-        return {
-            "guidance": content,
-            "model": OPENAI_MODEL,
-            "sources_used": len(protocol_results[:5]),
-        }
-
-    except Exception as e:
-        raise HTTPException(status_code=500, detail=f"AI generation failed: {str(e)}")    
