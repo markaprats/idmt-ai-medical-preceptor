@@ -3,77 +3,77 @@
  * Matches chief complaint against red flag catalog
  */
 
-import redFlagCatalog from '../red_flag_catalog.json';
+import redFlagCatalog from "../red_flag_catalog.json";
 
-/**
- * Match result structure
- * @typedef {Object} MatchResult
- * @property {string[]} universal - Universal red flags
- * @property {string[]} categorySpecific - Category-specific red flags
- * @property {string|null} matchedCategory - Matched category name
- * @property {number} confidence - Match confidence (0-1)
- * @property {string} message - Optional message
- */
+const GENERIC_TERMS = new Set([
+  "pain",
+  "ache",
+  "hurt",
+  "injury",
+  "problem",
+  "issue",
+  "symptom"
+]);
 
-/**
- * Calculate match score between complaint and keywords
- * @param {string} complaint - Chief complaint text
- * @param {string[]} keywords - Category keywords
- * @returns {number} Match score (0-1)
- */
+function normalizeText(text) {
+  return String(text || "")
+    .toLowerCase()
+    .replace(/[^\w\s]/g, " ")
+    .replace(/\s+/g, " ")
+    .trim();
+}
+
 function calculateMatchScore(complaint, keywords) {
-  const complaintLower = complaint.toLowerCase();
-  let matches = 0;
-  const total = keywords.length;
-
-  if (total === 0) return 0;
+  const complaintLower = normalizeText(complaint);
+  let bestScore = 0;
 
   for (const keyword of keywords) {
-    const keywordLower = keyword.toLowerCase();
-    
-    // Exact match
+    const keywordLower = normalizeText(keyword);
+
+    if (!keywordLower) continue;
+
     if (complaintLower.includes(keywordLower)) {
-      matches += 1;
+      bestScore = Math.max(bestScore, 1);
+      continue;
     }
-    
-    // Partial match for multi-word keywords
-    const keywordParts = keywordLower.split(/\s+/);
-    for (const part of keywordParts) {
-      if (part.length > 3 && complaintLower.includes(part)) {
-        matches += 0.5;
-      }
+
+    const parts = keywordLower
+      .split(" ")
+      .filter((part) => part.length > 3 && !GENERIC_TERMS.has(part));
+
+    if (parts.length === 0) continue;
+
+    const matchedParts = parts.filter((part) => complaintLower.includes(part)).length;
+
+    if (matchedParts > 0) {
+      bestScore = Math.max(bestScore, matchedParts / parts.length);
     }
   }
 
-  return Math.min(matches, 1.0);
+  return bestScore;
 }
 
-/**
- * Match chief complaint against red flag catalog
- * @param {string} chiefComplaint - The chief complaint text
- * @returns {MatchResult} Match result with red flags
- */
 export function matchChiefComplaint(chiefComplaint) {
-  if (!chiefComplaint || typeof chiefComplaint !== 'string') {
+  const universal = redFlagCatalog.universal_red_flags;
+
+  if (!chiefComplaint || typeof chiefComplaint !== "string") {
     return {
-      universal: redFlagCatalog.universal_red_flags,
+      universal,
       categorySpecific: [],
       matchedCategory: null,
       confidence: 0,
-      message: 'Invalid chief complaint provided'
+      message: "Enter a chief complaint to show complaint-specific red flags."
     };
   }
 
   const categories = redFlagCatalog.chief_complaint_categories;
-  const universal = redFlagCatalog.universal_red_flags;
-  
-  // Find best matching category
+
   let bestMatch = null;
   let bestScore = 0;
 
   for (const [categoryName, categoryData] of Object.entries(categories)) {
-    const score = calculateMatchScore(chiefComplaint, categoryData.keywords);
-    
+    const score = calculateMatchScore(chiefComplaint, categoryData.keywords || []);
+
     if (score > bestScore) {
       bestScore = score;
       bestMatch = {
@@ -84,59 +84,29 @@ export function matchChiefComplaint(chiefComplaint) {
     }
   }
 
-  // Apply confidence thresholds
-  if (!bestMatch || bestScore < 0.50) {
+  if (!bestMatch || bestScore < 0.5) {
     return {
       universal,
       categorySpecific: [],
       matchedCategory: null,
       confidence: bestScore,
-      message: 'No specific red flag category matched. Use universal red flags.'
-    };
-  }
-
-  if (bestScore >= 0.75) {
-    return {
-      universal,
-      categorySpecific: bestMatch.red_flags,
-      matchedCategory: bestMatch.name,
-      confidence: bestScore,
-      message: null
-    };
-  }
-
-  if (bestScore >= 0.50) {
-    return {
-      universal,
-      categorySpecific: bestMatch.red_flags.slice(0, 6),
-      matchedCategory: bestMatch.name,
-      confidence: bestScore,
-      message: 'Multiple categories possible. Select the most appropriate.'
+      message: "No specific red flag category matched. Use universal red flags."
     };
   }
 
   return {
     universal,
-    categorySpecific: [],
+    categorySpecific: bestMatch.red_flags || [],
     matchedCategory: bestMatch.name,
     confidence: bestScore,
-    message: 'Low confidence match. Monitor universal red flags.'
+    message: null
   };
 }
 
-/**
- * Get all available categories
- * @returns {string[]} List of category names
- */
 export function getAllCategories() {
   return Object.keys(redFlagCatalog.chief_complaint_categories);
 }
 
-/**
- * Get category by name
- * @param {string} categoryName - Name of the category
- * @returns {Object|null} Category data or null
- */
 export function getCategory(categoryName) {
   return redFlagCatalog.chief_complaint_categories[categoryName] || null;
 }
