@@ -8,24 +8,35 @@ function normalizeList(value) {
   return [String(value)];
 }
 
-function GuidanceList({ items, loadingAI }) {
+function GuidanceList({ items, loadingAI, fallback = [] }) {
   const list = normalizeList(items);
+  const fallbackList = normalizeList(fallback);
+
+  if (list.length > 0) {
+    return (
+      <ul className="mt-2 list-disc space-y-1 pl-5 text-sm">
+        {list.map((item, index) => (
+          <li key={index}>{typeof item === "string" ? item : JSON.stringify(item)}</li>
+        ))}
+      </ul>
+    );
+  }
+
+  if (fallbackList.length > 0) {
+    return (
+      <ul className="mt-2 list-disc space-y-1 pl-5 text-sm">
+        {fallbackList.map((item, index) => (
+          <li key={index}>{typeof item === "string" ? item : JSON.stringify(item)}</li>
+        ))}
+      </ul>
+    );
+  }
 
   if (loadingAI) {
-    return <p className="text-sm text-blue-700">Generating guidance...</p>;
+    return <p className="text-sm text-blue-700">Generating additional guidance...</p>;
   }
 
-  if (list.length === 0) {
-    return <p className="text-sm text-slate-600">Guidance will appear after generation completes.</p>;
-  }
-
-  return (
-    <ul className="mt-2 list-disc space-y-1 pl-5 text-sm">
-      {list.map((item, index) => (
-        <li key={index}>{typeof item === "string" ? item : JSON.stringify(item)}</li>
-      ))}
-    </ul>
-  );
+  return <p className="text-sm text-slate-600">No additional guidance generated.</p>;
 }
 
 export default function ResultsPanel({ caseData }) {
@@ -144,9 +155,57 @@ export default function ResultsPanel({ caseData }) {
     caseData.temp &&
     !caseData.incompleteVitals;
 
+  const redFlagFallback =
+    selectedRedFlags.length > 0
+      ? selectedRedFlags
+      : [
+          "No red flags selected from intake.",
+          "Continue reassessment for airway compromise, respiratory distress, altered mental status, hemodynamic instability, uncontrolled bleeding, or rapid clinical deterioration."
+        ];
+
+  const askCheckFallback = [
+    !vitalsComplete && "Obtain or repeat complete vital signs if possible.",
+    !caseData.onset && "Clarify onset and timing of symptoms.",
+    !caseData.provocation && "Clarify provoking and relieving factors.",
+    !caseData.quality && "Clarify symptom quality.",
+    !caseData.radiation && "Clarify location and radiation.",
+    !caseData.timeCourse && "Clarify progression or change over time.",
+    !caseData.focusedExam && "Document a focused exam relevant to the chief complaint.",
+    "Ask about associated symptoms and pertinent negatives.",
+    "Reassess for new or worsening red flags.",
+    "Verify recommendations against protocol source material and escalate when uncertain."
+  ].filter(Boolean);
+
+  const protocolRecommendationFallback = protocolResults.length > 0
+    ? [
+        "Review the retrieved protocol source matches below.",
+        "Use the source text to verify scope of care, escalation triggers, and any medication guidance.",
+        "If the source does not directly support an action, consult a preceptor or escalate care as appropriate."
+      ]
+    : [
+        "No direct protocol source match found.",
+        "Default to stabilization, reassessment, preceptor consultation, and evacuation or escalation as clinically appropriate."
+      ];
+
+  const medicationFallback = [
+    "Medication guidance should only be used when supported by protocol or CPG source text.",
+    "Verify dose, contraindications, allergies, weight-based requirements, and protocol authority before administration."
+  ];
+
+  const callPreceptorFallback = [
+    "Call a preceptor if red flags are present, diagnosis is unclear, patient worsens, or protocol authority cannot be confirmed.",
+    "Strongly consider evacuation or higher level evaluation for unstable vitals, altered mental status, severe respiratory distress, uncontrolled bleeding, severe pain out of proportion, or rapid deterioration."
+  ];
+
   const hasProtocolMatches = protocolResults.length > 0;
   const dataCompleteness = vitalsComplete ? "Moderate to High" : "Low to Moderate";
   const protocolSupport = hasProtocolMatches ? "Partial source match found" : "No source match found";
+
+  const confidenceText =
+    typeof aiGuidance?.confidence_data_integrity === "number"
+      ? `Rule-based confidence score returned by model: ${aiGuidance.confidence_data_integrity}. Interpret cautiously and verify source support.`
+      : aiGuidance?.confidence_data_integrity ||
+        `Data completeness is ${dataCompleteness}. Protocol support is ${protocolSupport}. Confidence remains limited until the entered data and retrieved sources are verified.`;
 
   return (
     <div className="space-y-5">
@@ -169,10 +228,8 @@ export default function ResultsPanel({ caseData }) {
           <p className="mt-3 text-sm text-blue-700">Retrieving protocol source matches...</p>
         )}
 
-        {!loadingSources && !loadingAI && !aiGuidance && !aiError && (
-          <p className="mt-3 text-sm text-slate-600">
-            Guidance has not generated yet. Tap the button if this page has been idle on mobile.
-          </p>
+        {!loadingSources && loadingAI && (
+          <p className="mt-3 text-sm text-blue-700">Generating AI-assisted guidance. This may take several seconds on mobile.</p>
         )}
       </section>
 
@@ -194,6 +251,9 @@ export default function ResultsPanel({ caseData }) {
       {aiError && (
         <section className="rounded-2xl border bg-red-50 p-4 text-sm text-red-900">
           <p>AI guidance unavailable: {aiError}</p>
+          <p className="mt-2">
+            Showing rule-based fallback guidance from the entered case and retrieved protocol matches.
+          </p>
           <button
             type="button"
             className="mt-3 rounded-lg bg-red-700 px-4 py-2 font-semibold text-white"
@@ -206,13 +266,11 @@ export default function ResultsPanel({ caseData }) {
 
       <section className="rounded-2xl border border-red-100 bg-red-50 p-5 shadow-sm">
         <h3 className="text-lg font-bold text-red-800">1. Immediate Red Flags</h3>
-        {aiGuidance ? (
-          <GuidanceList items={aiGuidance.immediate_red_flags} loadingAI={loadingAI} />
-        ) : selectedRedFlags.length > 0 ? (
-          <GuidanceList items={selectedRedFlags} loadingAI={loadingAI} />
-        ) : (
-          <p className="mt-2 text-sm text-red-900">No red flags selected.</p>
-        )}
+        <GuidanceList
+          items={aiGuidance?.immediate_red_flags}
+          loadingAI={false}
+          fallback={redFlagFallback}
+        />
       </section>
 
       <section className="rounded-2xl border bg-white p-5 shadow-sm">
@@ -235,12 +293,20 @@ export default function ResultsPanel({ caseData }) {
 
       <section className="rounded-2xl border bg-white p-5 shadow-sm">
         <h3 className="text-lg font-bold text-blue-800">3. What to Ask / Check Next</h3>
-        <GuidanceList items={aiGuidance?.ask_check_next} loadingAI={loadingAI} />
+        <GuidanceList
+          items={aiGuidance?.ask_check_next}
+          loadingAI={false}
+          fallback={askCheckFallback}
+        />
       </section>
 
       <section className="rounded-2xl border border-green-100 bg-green-50 p-5 shadow-sm">
         <h3 className="text-lg font-bold text-green-800">4. Protocol-Supported Recommendations</h3>
-        <GuidanceList items={aiGuidance?.protocol_supported_recommendations} loadingAI={loadingAI} />
+        <GuidanceList
+          items={aiGuidance?.protocol_supported_recommendations}
+          loadingAI={loadingAI}
+          fallback={protocolRecommendationFallback}
+        />
 
         <div className="mt-4 space-y-3">
           {protocolResults.slice(0, 5).map((item, index) => (
@@ -262,17 +328,37 @@ export default function ResultsPanel({ caseData }) {
 
       <section className="rounded-2xl border bg-white p-5 shadow-sm">
         <h3 className="text-lg font-bold text-blue-800">5. Medication Guidance</h3>
-        <GuidanceList items={aiGuidance?.medication_guidance} loadingAI={loadingAI} />
+        <GuidanceList
+          items={aiGuidance?.medication_guidance}
+          loadingAI={loadingAI}
+          fallback={medicationFallback}
+        />
       </section>
 
       <section className="rounded-2xl border bg-white p-5 shadow-sm">
         <h3 className="text-lg font-bold text-blue-800">6. IDMT Assessment & Plan Review</h3>
-        <GuidanceList items={aiGuidance?.assessment_plan_review} loadingAI={loadingAI} />
+        <GuidanceList
+          items={aiGuidance?.assessment_plan_review}
+          loadingAI={loadingAI}
+          fallback={
+            caseData.assessment || caseData.plan
+              ? [
+                  `Entered assessment: ${caseData.assessment || "Not entered"}`,
+                  `Entered plan: ${caseData.plan || "Not entered"}`,
+                  "AI critique will appear when generation completes."
+                ]
+              : ["No IDMT assessment or plan entered for review."]
+          }
+        />
       </section>
 
       <section className="rounded-2xl border border-red-100 bg-red-50 p-5 shadow-sm">
         <h3 className="text-lg font-bold text-red-800">7. Call Preceptor / Evacuate</h3>
-        <GuidanceList items={aiGuidance?.call_preceptor_evacuate} loadingAI={loadingAI} />
+        <GuidanceList
+          items={aiGuidance?.call_preceptor_evacuate}
+          loadingAI={loadingAI}
+          fallback={callPreceptorFallback}
+        />
       </section>
 
       <section className="rounded-2xl border bg-white p-5 shadow-sm">
@@ -281,7 +367,7 @@ export default function ResultsPanel({ caseData }) {
           <p><strong>Data completeness:</strong> {dataCompleteness}</p>
           <p><strong>Protocol support:</strong> {protocolSupport}</p>
         </div>
-        <GuidanceList items={aiGuidance?.confidence_data_integrity} loadingAI={loadingAI} />
+        <p className="mt-3 text-sm text-slate-700">{confidenceText}</p>
       </section>
 
       <section className="rounded-2xl border bg-slate-50 p-5 text-sm shadow-sm">
