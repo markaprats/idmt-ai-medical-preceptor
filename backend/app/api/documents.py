@@ -9,16 +9,22 @@ import fitz  # PyMuPDF
 
 router = APIRouter()
 
-DATA_DIR = Path(__file__).parent.parent.parent / "data"
+import os
+
+# Use persistent disk if available (Render), otherwise fallback locally
+BASE_DATA_DIR = Path(os.getenv("DATA_DIR", Path(__file__).parent.parent.parent / "data"))
+
+DATA_DIR = BASE_DATA_DIR
 DOCS_DIR = DATA_DIR / "documents"
-UPLOADS_DIR = Path(__file__).parent.parent / "uploads"
+UPLOADS_DIR = DATA_DIR / "uploads"
 INDEX_DIR = DATA_DIR / "index"
 CHUNKS_FILE = DATA_DIR / "chunks.json"
 
+# Ensure directories exist
+DATA_DIR.mkdir(parents=True, exist_ok=True)
 DOCS_DIR.mkdir(parents=True, exist_ok=True)
 UPLOADS_DIR.mkdir(parents=True, exist_ok=True)
 INDEX_DIR.mkdir(parents=True, exist_ok=True)
-DATA_DIR.mkdir(parents=True, exist_ok=True)
 
 
 class DocumentInfo(BaseModel):
