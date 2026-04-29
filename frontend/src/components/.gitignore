@@ -1,0 +1,10 @@
+# Python
+__pycache__/
+*.pyc
+
+# Uploads & generated data
+backend/app/uploads/
+backend/data/chunks.json
+
+# Node
+node_modules/
