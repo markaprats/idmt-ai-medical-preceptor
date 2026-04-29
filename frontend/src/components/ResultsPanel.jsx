@@ -1,4 +1,5 @@
 import { useEffect, useRef, useState } from "react";
+import differentialCatalog from "../differential_catalog.json";
 
 const API_BASE_URL = "https://idmt-ai-medical-preceptor.onrender.com";
 
@@ -6,6 +7,103 @@ function normalizeList(value) {
   if (!value) return [];
   if (Array.isArray(value)) return value;
   return [String(value)];
+}
+
+function normalizeText(text) {
+  return String(text || "")
+    .toLowerCase()
+    .replace(/[^\w\s]/g, " ")
+    .replace(/\s+/g, " ")
+    .trim();
+}
+
+function scoreDifferentialCategory(chiefComplaint, category) {
+  const complaint = normalizeText(chiefComplaint);
+  let score = 0;
+
+  for (const keyword of category.keywords || []) {
+    const normalizedKeyword = normalizeText(keyword);
+
+    if (!normalizedKeyword) continue;
+
+    if (complaint.includes(normalizedKeyword)) {
+      score = Math.max(score, 1);
+      continue;
+    }
+
+    const parts = normalizedKeyword
+      .split(" ")
+      .filter((part) => part.length > 3 && part !== "pain");
+
+    if (parts.length > 0) {
+      const matchedParts = parts.filter((part) => complaint.includes(part)).length;
+      if (matchedParts > 0) {
+        score = Math.max(score, matchedParts / parts.length);
+      }
+    }
+  }
+
+  return score;
+}
+
+function getFallbackDifferential(chiefComplaint) {
+  let bestCategory = null;
+  let bestScore = 0;
+
+  for (const category of Object.values(differentialCatalog)) {
+    const score = scoreDifferentialCategory(chiefComplaint, category);
+
+    if (score > bestScore) {
+      bestScore = score;
+      bestCategory = category;
+    }
+  }
+
+  if (!bestCategory || bestScore < 0.5) {
+    return {
+      cannot_miss: [
+        "Condition outside current fallback catalog",
+        "Unstable patient or occult serious condition",
+        "Protocol-limited condition requiring preceptor input"
+      ],
+      more_common: [
+        "Benign/self-limited condition",
+        "Musculoskeletal or functional process",
+        "Viral or inflammatory process"
+      ],
+      other: [
+        "Medication or exposure-related symptoms",
+        "Atypical presentation requiring reassessment"
+      ]
+    };
+  }
+
+  return {
+    cannot_miss: bestCategory.cannot_miss || [],
+    more_common: bestCategory.more_common || [],
+    other: bestCategory.other || []
+  };
+}
+
+function mergeGuidanceWithFallback(aiItems, fallbackItems, minimumCount = 3) {
+  const aiList = normalizeList(aiItems);
+  const fallbackList = normalizeList(fallbackItems);
+
+  if (aiList.length >= minimumCount) {
+    return aiList;
+  }
+
+  const combined = [...aiList];
+
+  for (const item of fallbackList) {
+    if (!combined.includes(item)) {
+      combined.push(item);
+    }
+
+    if (combined.length >= minimumCount) break;
+  }
+
+  return combined;
 }
 
 function GuidanceList({ items, loadingAI, fallback = [] }) {
@@ -203,6 +301,26 @@ export default function ResultsPanel({ caseData }) {
     caseData.temp &&
     !caseData.incompleteVitals;
 
+  const fallbackDifferential = getFallbackDifferential(caseData.chiefComplaint);
+
+  const cannotMissDifferential = mergeGuidanceWithFallback(
+    aiGuidance?.differential_cannot_miss,
+    fallbackDifferential.cannot_miss,
+    3
+  );
+
+  const moreCommonDifferential = mergeGuidanceWithFallback(
+    aiGuidance?.differential_more_common,
+    fallbackDifferential.more_common,
+    3
+  );
+
+  const otherDifferential = mergeGuidanceWithFallback(
+    aiGuidance?.differential_other,
+    fallbackDifferential.other,
+    2
+  );
+
   const redFlagFallback =
     selectedRedFlags.length > 0
       ? selectedRedFlags
@@ -323,18 +441,21 @@ export default function ResultsPanel({ caseData }) {
 
       <section className="rounded-2xl border bg-white p-5 shadow-sm">
         <h3 className="text-lg font-bold text-blue-800">2. Differential Diagnosis</h3>
+        <p className="mt-1 text-sm text-slate-600">
+          AI-generated differentials are supplemented with a fallback teaching catalog when output is limited.
+        </p>
         <div className="mt-3 grid gap-4 md:grid-cols-3">
           <div>
             <h4 className="font-semibold">Cannot Miss</h4>
-            <GuidanceList items={aiGuidance?.differential_cannot_miss} loadingAI={loadingAI} />
+            <GuidanceList items={cannotMissDifferential} loadingAI={loadingAI} />
           </div>
           <div>
             <h4 className="font-semibold">More Common</h4>
-            <GuidanceList items={aiGuidance?.differential_more_common} loadingAI={loadingAI} />
+            <GuidanceList items={moreCommonDifferential} loadingAI={loadingAI} />
           </div>
           <div>
             <h4 className="font-semibold">Other</h4>
-            <GuidanceList items={aiGuidance?.differential_other} loadingAI={loadingAI} />
+            <GuidanceList items={otherDifferential} loadingAI={loadingAI} />
           </div>
         </div>
       </section>
