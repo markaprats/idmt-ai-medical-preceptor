@@ -53,7 +53,7 @@ function calculateMatchScore(complaint, keywords) {
  * @param {string} chiefComplaint - The chief complaint text
  * @returns {MatchResult} Match result with red flags
  */
-export function matchRedFlags(chiefComplaint) {
+export function matchChiefComplaint(chiefComplaint) {
   if (!chiefComplaint || typeof chiefComplaint !== 'string') {
     return {
       universal: redFlagCatalog.universal_red_flags,
@@ -142,7 +142,7 @@ export function getCategory(categoryName) {
 }
 
 export default {
-  matchRedFlags,
+  matchChiefComplaint,
   getAllCategories,
   getCategory
 };

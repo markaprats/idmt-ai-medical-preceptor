@@ -1,347 +1,433 @@
-import { useState } from 'react'
-import { useNavigate } from 'react-router-dom'
-import { AlertTriangle, ChevronRight, Save } from 'lucide-react'
-import redFlagCatalog from '../red_flag_catalog.json'
+import { useMemo, useState } from "react";
+import { matchChiefComplaint } from "../utils/redFlagMatcher";
 
-export default function CaseInput() {
-  const navigate = useNavigate()
-  const [formData, setFormData] = useState({
-    chiefComplaint: '',
-    onset: '',
-    severity: 5,
-    location: '',
-    radiation: '',
-    associatedSymptoms: '',
-    interventions: '',
-    vitalSigns: {
-      heartRate: '',
-      bloodPressure: '',
-      respiratoryRate: '',
-      temperature: '',
-      oxygenSaturation: '',
-    },
-    mechanismOfInjury: '',
-    pastMedicalHistory: '',
-    medications: '',
-    allergies: '',
-  })
+export default function CaseInput({ onSubmit }) {
+  const [caseData, setCaseData] = useState({
+    chiefComplaint: "",
+    environment: "",
+    resources: "",
+    onset: "",
+    provocation: "",
+    quality: "",
+    radiation: "",
+    severity: "5",
+    timeCourse: "",
+    hr: "",
+    bp: "",
+    rr: "",
+    spo2: "",
+    temp: "",
+    incompleteVitals: false,
+    focusedExam: "",
+    meds: "",
+    allergies: "",
+    history: "",
+    evacuationAvailable: "unknown",
+    communicationAvailable: "unknown",
+    timeSinceOnset: "",
+    careTeam: "",
+    assessment: "",
+    plan: "",
+    otherRedFlag: ""
+  });
 
-  const [matchedRedFlags, setMatchedRedFlags] = useState(null)
+  const [selectedRedFlags, setSelectedRedFlags] = useState([]);
 
-  const handleChange = (field, value) => {
-    setFormData(prev => ({ ...prev, [field]: value }))
-    
-    // Trigger red flag matching when chief complaint changes
-    if (field === 'chiefComplaint' && value) {
-      const matches = matchRedFlags(value)
-      setMatchedRedFlags(matches)
-    }
+  const redFlagMatch = useMemo(() => {
+    return matchChiefComplaint(caseData.chiefComplaint);
+  }, [caseData.chiefComplaint]);
+
+  const redFlagsToDisplay =
+    redFlagMatch?.redFlagsToDisplay ||
+    [...(redFlagMatch?.universal || []), ...(redFlagMatch?.categorySpecific || [])];
+
+  function updateField(field, value) {
+    setCaseData((prev) => ({ ...prev, [field]: value }));
   }
 
-  const handleVitalChange = (field, value) => {
-    setFormData(prev => ({
-      ...prev,
-      vitalSigns: { ...prev.vitalSigns, [field]: value }
-    }))
+  function toggleRedFlag(flag) {
+    setSelectedRedFlags((prev) =>
+      prev.includes(flag)
+        ? prev.filter((item) => item !== flag)
+        : [...prev, flag]
+    );
   }
 
-  const matchRedFlags = (complaint) => {
-    const complaintLower = complaint.toLowerCase()
-    const categories = redFlagCatalog.chief_complaint_categories
-    const universal = redFlagCatalog.universal_red_flags
-    
-    let bestMatch = null
-    let bestScore = 0
+  function handleSubmit(e) {
+    e.preventDefault();
 
-    for (const [categoryName, categoryData] of Object.entries(categories)) {
-      let score = 0
-      for (const keyword of categoryData.keywords) {
-        if (complaintLower.includes(keyword.toLowerCase())) {
-          score += 1
-        }
-      }
-      if (score > bestScore) {
-        bestScore = score
-        bestMatch = { name: categoryName, ...categoryData, score }
-      }
+    const finalRedFlags = [...selectedRedFlags];
+
+    if (caseData.otherRedFlag.trim()) {
+      finalRedFlags.push(caseData.otherRedFlag.trim());
     }
 
-    if (bestScore > 0) {
-      return {
-        universal,
-        categorySpecific: bestMatch.red_flags,
-        matchedCategory: bestMatch.name,
-        confidence: Math.min(bestScore / 3, 1)
-      }
-    }
-    return { universal, categorySpecific: [], matchedCategory: null, confidence: 0 }
+    onSubmit({
+      ...caseData,
+      selectedRedFlags: finalRedFlags,
+      redFlagMatch
+    });
   }
 
-  const handleSubmit = () => {
-    // Store form data in sessionStorage for Results panel
-    sessionStorage.setItem('caseData', JSON.stringify(formData))
-    sessionStorage.setItem('redFlags', JSON.stringify(matchedRedFlags))
-    navigate('/results')
-  }
+  const universalFlags = redFlagsToDisplay.filter((flag) =>
+    redFlagMatch?.universal?.includes(flag)
+  );
+
+  const categoryFlags = redFlagsToDisplay.filter(
+    (flag) => !redFlagMatch?.universal?.includes(flag)
+  );
 
   return (
-    <div className="space-y-6">
-      <div>
-        <h1 className="text-2xl font-bold text-slate-800">Clinical Case Input</h1>
-        <p className="text-slate-600 mt-1">Enter patient presentation for AI analysis</p>
-      </div>
+    <form onSubmit={handleSubmit} className="space-y-5">
+      <section className="rounded-2xl border bg-white p-5 shadow-sm">
+        <div className="flex flex-col gap-3 md:flex-row md:items-start md:justify-between">
+          <div>
+            <h2 className="text-2xl font-bold text-slate-900">New Patient Case</h2>
+            <p className="mt-1 text-sm text-slate-600">
+              Enter patient information below. All fields help generate safer, more accurate guidance.
+            </p>
+          </div>
 
-      {/* Red Flags Warning */}
-      {matchedRedFlags && (
-        <div className="bg-red-50 border border-red-200 rounded-lg p-4">
-          <div className="flex items-center gap-2 mb-3">
-            <AlertTriangle className="w-5 h-5 text-red-600" />
-            <h3 className="font-semibold text-red-800">Red Flags for: {matchedRedFlags.matchedCategory || 'General'}</h3>
-          </div>
-          
-          <div className="grid md:grid-cols-2 gap-4">
-            <div>
-              <p className="text-sm font-medium text-red-700 mb-2">Universal Red Flags (Always Monitor)</p>
-              <ul className="text-sm text-red-800 space-y-1">
-                {matchedRedFlags.universal.slice(0, 4).map((flag, i) => (
-                  <li key={i} className="flex items-center gap-2">
-                    <span className="w-2 h-2 bg-red-500 rounded-full"></span>
-                    {flag}
-                  </li>
-                ))}
-              </ul>
-            </div>
-            
-            {matchedRedFlags.categorySpecific.length > 0 && (
-              <div>
-                <p className="text-sm font-medium text-red-700 mb-2">Category-Specific Red Flags</p>
-                <ul className="text-sm text-red-800 space-y-1">
-                  {matchedRedFlags.categorySpecific.slice(0, 4).map((flag, i) => (
-                    <li key={i} className="flex items-center gap-2">
-                      <span className="w-2 h-2 bg-orange-500 rounded-full"></span>
-                      {flag}
-                    </li>
-                  ))}
-                </ul>
-              </div>
-            )}
-          </div>
+          <button
+            type="button"
+            onClick={() =>
+              alert("Voice input planned for future version. Enter case manually for this prototype.")
+            }
+            className="rounded-xl bg-blue-700 px-5 py-3 text-sm font-semibold text-white"
+          >
+            🎙 Dictate Case
+          </button>
         </div>
-      )}
+      </section>
 
-      <div className="bg-white rounded-lg border border-slate-200 p-6 space-y-6">
-        {/* Chief Complaint */}
-        <div>
-          <label className="block text-sm font-medium text-slate-700 mb-2">
-            Chief Complaint <span className="text-red-500">*</span>
-          </label>
+      <div className="grid gap-5 lg:grid-cols-2">
+        <section className="rounded-2xl border bg-white p-5 shadow-sm">
+          <h3 className="mb-4 text-lg font-bold text-slate-900">
+            1. Chief Complaint & Context
+          </h3>
+
+          <label className="text-sm font-semibold">Chief Complaint</label>
           <input
-            type="text"
-            value={formData.chiefComplaint}
-            onChange={(e) => handleChange('chiefComplaint', e.target.value)}
-            placeholder="e.g., Chest pain, shortness of breath, leg injury"
-            className="w-full px-4 py-2 border border-slate-300 rounded-md focus:ring-2 focus:ring-red-500 focus:border-red-500"
+            className="mt-1 w-full rounded-lg border p-2"
+            value={caseData.chiefComplaint}
+            onChange={(e) => updateField("chiefComplaint", e.target.value)}
+            placeholder="e.g., chest pain x 2 hours"
           />
-        </div>
 
-        {/* Onset & Severity */}
-        <div className="grid md:grid-cols-2 gap-4">
-          <div>
-            <label className="block text-sm font-medium text-slate-700 mb-2">Onset</label>
-            <input
-              type="text"
-              value={formData.onset}
-              onChange={(e) => handleChange('onset', e.target.value)}
-              placeholder="e.g., 2 hours ago, sudden"
-              className="w-full px-4 py-2 border border-slate-300 rounded-md focus:ring-2 focus:ring-red-500 focus:border-red-500"
-            />
+          <div className="mt-4 grid gap-3 md:grid-cols-2">
+            <div>
+              <label className="text-sm font-semibold">Environment / Setting</label>
+              <select
+                className="mt-1 w-full rounded-lg border p-2"
+                value={caseData.environment}
+                onChange={(e) => updateField("environment", e.target.value)}
+              >
+                <option value="">Select Environment</option>
+                <option value="field">Field</option>
+                <option value="garrison">Garrison</option>
+                <option value="deployed">Deployed</option>
+                <option value="training">Training Environment</option>
+                <option value="clinic">Clinic</option>
+              </select>
+            </div>
+
+            <div>
+              <label className="text-sm font-semibold">Resources Available</label>
+              <select
+                className="mt-1 w-full rounded-lg border p-2"
+                value={caseData.resources}
+                onChange={(e) => updateField("resources", e.target.value)}
+              >
+                <option value="">Select Resources</option>
+                <option value="limited">Limited</option>
+                <option value="vitals_only">Vitals Only</option>
+                <option value="oxygen_aed">Oxygen / AED</option>
+                <option value="basic_clinic">Basic Clinic Resources</option>
+                <option value="full_mtf">MTF Available</option>
+              </select>
+            </div>
           </div>
-          <div>
-            <label className="block text-sm font-medium text-slate-700 mb-2">
-              Severity (1-10)
-              <span className="ml-2 font-normal text-slate-500">Current: {formData.severity}</span>
-            </label>
+        </section>
+
+        <section className="rounded-2xl border bg-white p-5 shadow-sm">
+          <h3 className="mb-4 text-lg font-bold text-slate-900">2. HPI (OPQRST)</h3>
+
+          {[
+            ["onset", "O", "Onset", "When did it start?"],
+            ["provocation", "P", "Provocation / Palliation", "What makes it better or worse?"],
+            ["quality", "Q", "Quality", "What does it feel like?"],
+            ["radiation", "R", "Region / Radiation", "Where is it? Does it radiate?"],
+            ["timeCourse", "T", "Time Course", "How has it changed over time?"]
+          ].map(([field, letter, label, placeholder]) => (
+            <div key={field} className="mb-3 grid gap-2 md:grid-cols-[40px_180px_1fr] md:items-center">
+              <span className="flex h-7 w-7 items-center justify-center rounded bg-blue-100 text-sm font-bold text-blue-700">
+                {letter}
+              </span>
+              <label className="text-sm font-semibold">{label}</label>
+              <input
+                className="rounded-lg border p-2"
+                value={caseData[field]}
+                onChange={(e) => updateField(field, e.target.value)}
+                placeholder={placeholder}
+              />
+            </div>
+          ))}
+
+          <div className="grid gap-2 md:grid-cols-[40px_180px_1fr_60px] md:items-center">
+            <span className="flex h-7 w-7 items-center justify-center rounded bg-blue-100 text-sm font-bold text-blue-700">
+              S
+            </span>
+            <label className="text-sm font-semibold">Severity 1–10</label>
             <input
               type="range"
               min="1"
               max="10"
-              value={formData.severity}
-              onChange={(e) => handleChange('severity', parseInt(e.target.value))}
-              className="w-full"
+              value={caseData.severity}
+              onChange={(e) => updateField("severity", e.target.value)}
             />
-          </div>
-        </div>
-
-        {/* Location & Radiation */}
-        <div className="grid md:grid-cols-2 gap-4">
-          <div>
-            <label className="block text-sm font-medium text-slate-700 mb-2">Location</label>
             <input
-              type="text"
-              value={formData.location}
-              onChange={(e) => handleChange('location', e.target.value)}
-              placeholder="e.g., Left chest, lower abdomen"
-              className="w-full px-4 py-2 border border-slate-300 rounded-md focus:ring-2 focus:ring-red-500 focus:border-red-500"
+              className="rounded-lg border p-2 text-center"
+              value={caseData.severity}
+              onChange={(e) => updateField("severity", e.target.value)}
             />
           </div>
-          <div>
-            <label className="block text-sm font-medium text-slate-700 mb-2">Radiation</label>
-            <input
-              type="text"
-              value={formData.radiation}
-              onChange={(e) => handleChange('radiation', e.target.value)}
-              placeholder="e.g., To left arm, to back"
-              className="w-full px-4 py-2 border border-slate-300 rounded-md focus:ring-2 focus:ring-red-500 focus:border-red-500"
-            />
-          </div>
-        </div>
-
-        {/* Associated Symptoms */}
-        <div>
-          <label className="block text-sm font-medium text-slate-700 mb-2">Associated Symptoms</label>
-          <textarea
-            value={formData.associatedSymptoms}
-            onChange={(e) => handleChange('associatedSymptoms', e.target.value)}
-            placeholder="e.g., Nausea, sweating, shortness of breath"
-            rows={3}
-            className="w-full px-4 py-2 border border-slate-300 rounded-md focus:ring-2 focus:ring-red-500 focus:border-red-500"
-          />
-        </div>
-
-        {/* Vital Signs */}
-        <div>
-          <h3 className="text-lg font-medium text-slate-800 mb-4">Vital Signs</h3>
-          <div className="grid md:grid-cols-5 gap-4">
-            <div>
-              <label className="block text-xs font-medium text-slate-600 mb-1">HR (bpm)</label>
-              <input
-                type="text"
-                value={formData.vitalSigns.heartRate}
-                onChange={(e) => handleVitalChange('heartRate', e.target.value)}
-                placeholder="e.g., 90"
-                className="w-full px-3 py-2 border border-slate-300 rounded-md focus:ring-2 focus:ring-red-500 focus:border-red-500"
-              />
-            </div>
-            <div>
-              <label className="block text-xs font-medium text-slate-600 mb-1">BP (mmHg)</label>
-              <input
-                type="text"
-                value={formData.vitalSigns.bloodPressure}
-                onChange={(e) => handleVitalChange('bloodPressure', e.target.value)}
-                placeholder="e.g., 120/80"
-                className="w-full px-3 py-2 border border-slate-300 rounded-md focus:ring-2 focus:ring-red-500 focus:border-red-500"
-              />
-            </div>
-            <div>
-              <label className="block text-xs font-medium text-slate-600 mb-1">RR (/min)</label>
-              <input
-                type="text"
-                value={formData.vitalSigns.respiratoryRate}
-                onChange={(e) => handleVitalChange('respiratoryRate', e.target.value)}
-                placeholder="e.g., 18"
-                className="w-full px-3 py-2 border border-slate-300 rounded-md focus:ring-2 focus:ring-red-500 focus:border-red-500"
-              />
-            </div>
-            <div>
-              <label className="block text-xs font-medium text-slate-600 mb-1">Temp (°F)</label>
-              <input
-                type="text"
-                value={formData.vitalSigns.temperature}
-                onChange={(e) => handleVitalChange('temperature', e.target.value)}
-                placeholder="e.g., 98.6"
-                className="w-full px-3 py-2 border border-slate-300 rounded-md focus:ring-2 focus:ring-red-500 focus:border-red-500"
-              />
-            </div>
-            <div>
-              <label className="block text-xs font-medium text-slate-600 mb-1">SpO2 (%)</label>
-              <input
-                type="text"
-                value={formData.vitalSigns.oxygenSaturation}
-                onChange={(e) => handleVitalChange('oxygenSaturation', e.target.value)}
-                placeholder="e.g., 98"
-                className="w-full px-3 py-2 border border-slate-300 rounded-md focus:ring-2 focus:ring-red-500 focus:border-red-500"
-              />
-            </div>
-          </div>
-        </div>
-
-        {/* Mechanism of Injury (for trauma) */}
-        <div>
-          <label className="block text-sm font-medium text-slate-700 mb-2">Mechanism of Injury (if trauma)</label>
-          <textarea
-            value={formData.mechanismOfInjury}
-            onChange={(e) => handleChange('mechanismOfInjury', e.target.value)}
-            placeholder="e.g., MVA, fall from height, GSW"
-            rows={2}
-            className="w-full px-4 py-2 border border-slate-300 rounded-md focus:ring-2 focus:ring-red-500 focus:border-red-500"
-          />
-        </div>
-
-        {/* Past Medical History */}
-        <div>
-          <label className="block text-sm font-medium text-slate-700 mb-2">Past Medical History</label>
-          <textarea
-            value={formData.pastMedicalHistory}
-            onChange={(e) => handleChange('pastMedicalHistory', e.target.value)}
-            placeholder="e.g., Diabetes, hypertension, asthma"
-            rows={2}
-            className="w-full px-4 py-2 border border-slate-300 rounded-md focus:ring-2 focus:ring-red-500 focus:border-red-500"
-          />
-        </div>
-
-        {/* Medications & Allergies */}
-        <div className="grid md:grid-cols-2 gap-4">
-          <div>
-            <label className="block text-sm font-medium text-slate-700 mb-2">Current Medications</label>
-            <textarea
-              value={formData.medications}
-              onChange={(e) => handleChange('medications', e.target.value)}
-              placeholder="e.g., Lisinopril 10mg, Metformin 500mg"
-              rows={2}
-              className="w-full px-4 py-2 border border-slate-300 rounded-md focus:ring-2 focus:ring-red-500 focus:border-red-500"
-            />
-          </div>
-          <div>
-            <label className="block text-sm font-medium text-slate-700 mb-2">Allergies</label>
-            <textarea
-              value={formData.allergies}
-              onChange={(e) => handleChange('allergies', e.target.value)}
-              placeholder="e.g., NKDA, Penicillin (rash)"
-              rows={2}
-              className="w-full px-4 py-2 border border-slate-300 rounded-md focus:ring-2 focus:ring-red-500 focus:border-red-500"
-            />
-          </div>
-        </div>
-
-        {/* Interventions */}
-        <div>
-          <label className="block text-sm font-medium text-slate-700 mb-2">Pre-hospital Interventions</label>
-          <textarea
-            value={formData.interventions}
-            onChange={(e) => handleChange('interventions', e.target.value)}
-            placeholder="e.g., IV established, tourniquet applied, medications given"
-            rows={2}
-            className="w-full px-4 py-2 border border-slate-300 rounded-md focus:ring-2 focus:ring-red-500 focus:border-red-500"
-          />
-        </div>
+        </section>
       </div>
 
-      {/* Submit */}
-      <div className="flex justify-end">
-        <button
-          onClick={handleSubmit}
-          disabled={!formData.chiefComplaint}
-          className={`flex items-center gap-2 px-6 py-3 rounded-md font-medium transition-colors ${
-            formData.chiefComplaint
-              ? 'bg-red-700 text-white hover:bg-red-800'
-              : 'bg-slate-300 text-slate-500 cursor-not-allowed'
-          }`}
-        >
-          <Save className="w-4 h-4" />
-          Analyze Case
-          <ChevronRight className="w-4 h-4" />
-        </button>
+      <section className="rounded-2xl border bg-white p-5 shadow-sm">
+        <div className="mb-4 flex flex-col gap-2 md:flex-row md:items-center md:justify-between">
+          <div>
+            <h3 className="text-lg font-bold text-slate-900">3. Red Flags</h3>
+            <p className="text-sm text-slate-600">
+              Universal red flags always show. Additional red flags adapt to chief complaint.
+            </p>
+          </div>
+
+          {redFlagMatch?.matchedCategory && (
+            <span className="rounded-full bg-blue-50 px-3 py-1 text-sm font-semibold text-blue-700">
+              Based on: {redFlagMatch.matchedCategory.replaceAll("_", " ")}
+            </span>
+          )}
+        </div>
+
+        {redFlagMatch?.message && (
+          <div className="mb-4 rounded-lg bg-yellow-50 p-3 text-sm text-yellow-900">
+            {redFlagMatch.message}
+          </div>
+        )}
+
+        <div className="grid gap-4 lg:grid-cols-2">
+          <div className="rounded-xl border p-4">
+            <h4 className="mb-3 font-bold">Universal Red Flags</h4>
+            <div className="space-y-2">
+              {universalFlags.map((flag) => (
+                <label key={flag} className="flex items-start gap-2 text-sm">
+                  <input
+                    type="checkbox"
+                    checked={selectedRedFlags.includes(flag)}
+                    onChange={() => toggleRedFlag(flag)}
+                    className="mt-1"
+                  />
+                  <span>{flag}</span>
+                </label>
+              ))}
+            </div>
+          </div>
+
+          <div className="rounded-xl border p-4">
+            <h4 className="mb-3 font-bold">Chief Complaint Specific Red Flags</h4>
+            <div className="space-y-2">
+              {categoryFlags.length > 0 ? (
+                categoryFlags.map((flag) => (
+                  <label key={flag} className="flex items-start gap-2 text-sm">
+                    <input
+                      type="checkbox"
+                      checked={selectedRedFlags.includes(flag)}
+                      onChange={() => toggleRedFlag(flag)}
+                      className="mt-1"
+                    />
+                    <span>{flag}</span>
+                  </label>
+                ))
+              ) : (
+                <p className="text-sm text-slate-600">
+                  Enter a chief complaint to show specific red flags.
+                </p>
+              )}
+            </div>
+
+            <input
+              className="mt-4 w-full rounded-lg border p-2"
+              placeholder="Add other red flag"
+              value={caseData.otherRedFlag}
+              onChange={(e) => updateField("otherRedFlag", e.target.value)}
+            />
+          </div>
+        </div>
+      </section>
+
+      <div className="grid gap-5 lg:grid-cols-2">
+        <section className="rounded-2xl border bg-white p-5 shadow-sm">
+          <h3 className="mb-4 text-lg font-bold">4. Vitals</h3>
+
+          <div className="grid grid-cols-2 gap-3 md:grid-cols-3">
+            {[
+              ["hr", "HR", "e.g., 72"],
+              ["bp", "BP", "e.g., 120/80"],
+              ["rr", "RR", "e.g., 16"],
+              ["spo2", "SpO2", "e.g., 98"],
+              ["temp", "Temp", "e.g., 98.6"]
+            ].map(([field, label, placeholder]) => (
+              <div key={field}>
+                <label className="text-sm font-semibold">{label}</label>
+                <input
+                  className="mt-1 w-full rounded-lg border p-2"
+                  value={caseData[field]}
+                  onChange={(e) => updateField(field, e.target.value)}
+                  placeholder={placeholder}
+                />
+              </div>
+            ))}
+          </div>
+
+          <label className="mt-4 flex items-center gap-2 text-sm">
+            <input
+              type="checkbox"
+              checked={caseData.incompleteVitals}
+              onChange={(e) => updateField("incompleteVitals", e.target.checked)}
+            />
+            Mark vitals as not available / incomplete
+          </label>
+        </section>
+
+        <section className="rounded-2xl border bg-white p-5 shadow-sm">
+          <h3 className="mb-4 text-lg font-bold">5. Focused Exam Findings</h3>
+          <textarea
+            className="h-32 w-full rounded-lg border p-3"
+            value={caseData.focusedExam}
+            onChange={(e) => updateField("focusedExam", e.target.value)}
+            placeholder="e.g., Lungs clear bilaterally. No wheezes. Heart regular. No JVD. Chest wall non-tender."
+          />
+        </section>
       </div>
-    </div>
-  )
+
+      <div className="grid gap-5 lg:grid-cols-2">
+        <section className="rounded-2xl border bg-white p-5 shadow-sm">
+          <h3 className="mb-4 text-lg font-bold">6. Medications / Allergies / History</h3>
+
+          {[
+            ["meds", "Medications", "List relevant medications"],
+            ["allergies", "Allergies", "List known allergies"],
+            ["history", "Relevant History", "e.g., HTN, DM, prior MI, asthma"]
+          ].map(([field, label, placeholder]) => (
+            <div key={field} className="mb-3">
+              <label className="text-sm font-semibold">{label}</label>
+              <input
+                className="mt-1 w-full rounded-lg border p-2"
+                value={caseData[field]}
+                onChange={(e) => updateField(field, e.target.value)}
+                placeholder={placeholder}
+              />
+            </div>
+          ))}
+        </section>
+
+        <section className="rounded-2xl border bg-white p-5 shadow-sm">
+          <h3 className="mb-4 text-lg font-bold">7. Additional Context</h3>
+
+          <div className="grid gap-3 md:grid-cols-2">
+            <div>
+              <label className="text-sm font-semibold">Evacuation Capability</label>
+              <select
+                className="mt-1 w-full rounded-lg border p-2"
+                value={caseData.evacuationAvailable}
+                onChange={(e) => updateField("evacuationAvailable", e.target.value)}
+              >
+                <option value="unknown">Select Capability</option>
+                <option value="yes">Available</option>
+                <option value="delayed">Delayed</option>
+                <option value="no">Not Available</option>
+              </select>
+            </div>
+
+            <div>
+              <label className="text-sm font-semibold">Communication Availability</label>
+              <select
+                className="mt-1 w-full rounded-lg border p-2"
+                value={caseData.communicationAvailable}
+                onChange={(e) => updateField("communicationAvailable", e.target.value)}
+              >
+                <option value="unknown">Select Availability</option>
+                <option value="yes">Available</option>
+                <option value="intermittent">Intermittent</option>
+                <option value="no">Not Available</option>
+              </select>
+            </div>
+
+            <div>
+              <label className="text-sm font-semibold">Time Since Symptom Onset</label>
+              <input
+                className="mt-1 w-full rounded-lg border p-2"
+                value={caseData.timeSinceOnset}
+                onChange={(e) => updateField("timeSinceOnset", e.target.value)}
+                placeholder="e.g., 2 hours"
+              />
+            </div>
+
+            <div>
+              <label className="text-sm font-semibold">Care Team / Personnel Available</label>
+              <input
+                className="mt-1 w-full rounded-lg border p-2"
+                value={caseData.careTeam}
+                onChange={(e) => updateField("careTeam", e.target.value)}
+                placeholder="e.g., ALS, medic, en route"
+              />
+            </div>
+          </div>
+        </section>
+      </div>
+
+      <section className="rounded-2xl border bg-white p-5 shadow-sm">
+        <h3 className="mb-4 text-lg font-bold">8. Your Assessment & Plan</h3>
+        <p className="mb-3 text-sm text-slate-600">
+          Optional in Preceptor Mode. Required later in Training Mode.
+        </p>
+
+        <div className="grid gap-4 lg:grid-cols-2">
+          <textarea
+            className="h-28 w-full rounded-lg border p-3"
+            value={caseData.assessment}
+            onChange={(e) => updateField("assessment", e.target.value)}
+            placeholder="Your assessment"
+          />
+          <textarea
+            className="h-28 w-full rounded-lg border p-3"
+            value={caseData.plan}
+            onChange={(e) => updateField("plan", e.target.value)}
+            placeholder="Your plan"
+          />
+        </div>
+      </section>
+
+      <section className="rounded-2xl border bg-blue-50 p-5 shadow-sm">
+        <div className="flex flex-col gap-4 lg:flex-row lg:items-center lg:justify-between">
+          <div className="text-sm text-slate-700">
+            <p className="font-semibold">Before You Submit</p>
+            <ul className="ml-5 list-disc">
+              <li>Review for accuracy</li>
+              <li>Add missing critical information</li>
+              <li>Ensure vitals and red flags are addressed</li>
+            </ul>
+          </div>
+
+          <button
+            type="submit"
+            className="rounded-xl bg-blue-700 px-8 py-3 font-semibold text-white"
+          >
+            Generate Preceptor Guidance
+          </button>
+        </div>
+      </section>
+    </form>
+  );
 }

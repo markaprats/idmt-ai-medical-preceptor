@@ -1,28 +1,27 @@
-"""Document upload and management endpoints"""
-import os
-import fitz  # PyMuPDF
+"""Document upload, extraction, and simple search endpoints"""
+import json
+import re
 from pathlib import Path
 from typing import List, Optional
-from datetime import datetime
 from fastapi import APIRouter, UploadFile, File, HTTPException
 from pydantic import BaseModel
+import fitz  # PyMuPDF
 
 router = APIRouter()
 
-# Data directories
 DATA_DIR = Path(__file__).parent.parent.parent / "data"
 DOCS_DIR = DATA_DIR / "documents"
 UPLOADS_DIR = Path(__file__).parent.parent / "uploads"
 INDEX_DIR = DATA_DIR / "index"
+CHUNKS_FILE = DATA_DIR / "chunks.json"
 
-# Ensure directories exist
 DOCS_DIR.mkdir(parents=True, exist_ok=True)
 UPLOADS_DIR.mkdir(parents=True, exist_ok=True)
 INDEX_DIR.mkdir(parents=True, exist_ok=True)
+DATA_DIR.mkdir(parents=True, exist_ok=True)
 
 
 class DocumentInfo(BaseModel):
-    """Document information model"""
     filename: str
     size: int
     uploaded_at: str
@@ -30,128 +29,217 @@ class DocumentInfo(BaseModel):
 
 
 class DocumentListResponse(BaseModel):
-    """Response for document listing"""
     documents: List[DocumentInfo]
     total: int
 
 
 class PDFUploadResponse(BaseModel):
-    """Response for PDF upload"""
     filename: str
     pages_extracted: int
+    chunks_created: int
     sample_pages: List[dict]
+
+
+class SearchRequest(BaseModel):
+    query: str
+
+
+def chunk_text(text: str, chunk_size: int = 1200, overlap: int = 200):
+    if not text:
+        return []
+
+    cleaned = re.sub(r"\s+", " ", text).strip()
+    chunks = []
+    start = 0
+
+    while start < len(cleaned):
+        end = start + chunk_size
+        chunks.append(cleaned[start:end])
+        start = end - overlap
+
+        if start < 0:
+            start = 0
+
+        if start >= len(cleaned):
+            break
+
+    return chunks
+
+
+def load_chunks():
+    if not CHUNKS_FILE.exists():
+        return []
+
+    with open(CHUNKS_FILE, "r", encoding="utf-8") as f:
+        return json.load(f)
+
+
+def save_chunks(chunks):
+    with open(CHUNKS_FILE, "w", encoding="utf-8") as f:
+        json.dump(chunks, f, ensure_ascii=False, indent=2)
+
+
+def score_chunk(query: str, text: str):
+    query_terms = [term for term in re.findall(r"\w+", query.lower()) if len(term) > 2]
+    text_lower = text.lower()
+
+    if not query_terms:
+        return 0
+
+    score = 0
+    for term in query_terms:
+        if term in text_lower:
+            score += 1
+
+    if query.lower() in text_lower:
+        score += 3
+
+    return score
 
 
 @router.get("/documents", response_model=DocumentListResponse)
 async def list_documents():
-    """List all uploaded documents"""
     documents = []
-    
-    if DOCS_DIR.exists():
-        for file_path in DOCS_DIR.glob("*.pdf"):
-            stat = file_path.stat()
-            documents.append(DocumentInfo(
+
+    for file_path in UPLOADS_DIR.glob("*.pdf"):
+        stat = file_path.stat()
+        documents.append(
+            DocumentInfo(
                 filename=file_path.name,
                 size=stat.st_size,
                 uploaded_at=str(stat.st_mtime),
-                page_count=None
-            ))
-    
-    return DocumentListResponse(
-        documents=documents,
-        total=len(documents)
-    )
+                page_count=None,
+            )
+        )
+
+    return DocumentListResponse(documents=documents, total=len(documents))
 
 
 @router.post("/upload-pdf", response_model=PDFUploadResponse)
 async def upload_pdf(file: UploadFile = File(...)):
-    """Upload a PDF file and extract text page-by-page using PyMuPDF"""
-    if not file.filename.endswith(".pdf"):
+    if not file.filename.lower().endswith(".pdf"):
         raise HTTPException(status_code=400, detail="Only PDF files are supported")
-    
-    # Save to uploads directory
+
     file_path = UPLOADS_DIR / file.filename
-    
-    # Read and save file
     content = await file.read()
+
     with open(file_path, "wb") as f:
         f.write(content)
-    
-    # Extract text using PyMuPDF
+
+    all_chunks = load_chunks()
+    all_chunks = [c for c in all_chunks if c.get("document_name") != file.filename]
+
     sample_pages = []
     pages_extracted = 0
-    
+    chunks_created = 0
+
     try:
         doc = fitz.open(str(file_path))
         pages_extracted = len(doc)
-        
-        # Extract first 500 chars from each page (up to 5 pages for sample)
-        max_sample_pages = min(5, pages_extracted)
-        for page_num in range(max_sample_pages):
-            page = doc[page_num]
-            text = page.get_text()
-            # Get first 500 characters
-            sample_text = text[:500] if text else ""
-            sample_pages.append({
-                "page_number": page_num + 1,
-                "content": sample_text
-            })
-        
+
+        for page_index in range(pages_extracted):
+            page_number = page_index + 1
+            page = doc[page_index]
+            text = page.get_text() or ""
+
+            if page_number <= 5:
+                sample_pages.append(
+                    {
+                        "page_number": page_number,
+                        "content": text[:500],
+                    }
+                )
+
+            page_chunks = chunk_text(text)
+
+            for chunk_index, chunk in enumerate(page_chunks):
+                all_chunks.append(
+                    {
+                        "document_name": file.filename,
+                        "page_number": page_number,
+                        "chunk_id": f"{file.filename}-p{page_number}-c{chunk_index + 1}",
+                        "text": chunk,
+                    }
+                )
+                chunks_created += 1
+
         doc.close()
-        
+        save_chunks(all_chunks)
+
     except Exception as e:
         raise HTTPException(status_code=500, detail=f"Error extracting PDF text: {str(e)}")
-    
+
     return PDFUploadResponse(
         filename=file.filename,
         pages_extracted=pages_extracted,
-        sample_pages=sample_pages
+        chunks_created=chunks_created,
+        sample_pages=sample_pages,
     )
+
+
+@router.post("/search")
+async def search_documents(request: SearchRequest):
+    chunks = load_chunks()
+
+    if not chunks:
+        return {
+            "query": request.query,
+            "results": [],
+            "message": "No indexed documents found. Upload a PDF first.",
+        }
+
+    scored = []
+
+    for chunk in chunks:
+        score = score_chunk(request.query, chunk.get("text", ""))
+        if score > 0:
+            scored.append(
+                {
+                    "document_name": chunk.get("document_name"),
+                    "page_number": chunk.get("page_number"),
+                    "chunk_id": chunk.get("chunk_id"),
+                    "snippet": chunk.get("text", "")[:700],
+                    "score": score,
+                }
+            )
+
+    scored.sort(key=lambda x: x["score"], reverse=True)
+
+    return {
+        "query": request.query,
+        "results": scored[:5],
+    }
 
 
 @router.post("/documents/upload")
 async def upload_document(file: UploadFile = File(...)):
-    """Upload a PDF document (legacy endpoint)"""
-    if not file.filename.endswith(".pdf"):
-        raise HTTPException(status_code=400, detail="Only PDF files are supported")
-    
-    file_path = DOCS_DIR / file.filename
-    
-    # Save file
-    content = await file.read()
-    with open(file_path, "wb") as f:
-        f.write(content)
-    
-    return {
-        "status": "uploaded",
-        "filename": file.filename,
-        "size": len(content)
-    }
+    return await upload_pdf(file)
 
 
 @router.delete("/documents/{filename}")
 async def delete_document(filename: str):
-    """Delete a document"""
-    file_path = DOCS_DIR / filename
-    
+    file_path = UPLOADS_DIR / filename
+
     if not file_path.exists():
         raise HTTPException(status_code=404, detail="Document not found")
-    
+
     file_path.unlink()
-    
-    return {
-        "status": "deleted",
-        "filename": filename
-    }
+
+    chunks = load_chunks()
+    chunks = [c for c in chunks if c.get("document_name") != filename]
+    save_chunks(chunks)
+
+    return {"status": "deleted", "filename": filename}
 
 
 @router.get("/documents/index/status")
 async def get_index_status():
-    """Get vector index status"""
-    index_files = list(INDEX_DIR.glob("*")) if INDEX_DIR.exists() else []
-    
+    chunks = load_chunks()
+    documents = sorted(set(c.get("document_name") for c in chunks if c.get("document_name")))
+
     return {
-        "indexed": len(index_files) > 0,
-        "files": len(index_files),
-        "status": "ready" if index_files else "empty"
+        "indexed": len(chunks) > 0,
+        "chunks": len(chunks),
+        "documents": documents,
+        "status": "ready" if chunks else "empty",
     }
