@@ -12,6 +12,7 @@ export default function CaseInput({ onSubmit }) {
     radiation: "",
     severity: "5",
     timeCourse: "",
+    clinicalNotes: "",
     hr: "",
     bp: "",
     rr: "",
@@ -189,6 +190,20 @@ export default function CaseInput({ onSubmit }) {
               className="rounded-lg border p-2 text-center"
               value={caseData.severity}
               onChange={(e) => updateField("severity", e.target.value)}
+            />
+          </div>
+          <div className="mt-5">
+            <label className="text-sm font-semibold">
+              Clinical Notes / Associated Symptoms
+            </label>
+            <p className="text-xs text-slate-500">
+              Include associated symptoms, secondary complaints, pertinent negatives, and timeline details not captured in OPQRST.
+            </p>
+            <textarea
+              className="mt-1 h-28 w-full rounded-lg border p-3"
+              value={caseData.clinicalNotes}
+              onChange={(e) => updateField("clinicalNotes", e.target.value)}
+              placeholder="Example: nausea without vomiting, worse lying flat, recent viral illness, second complaint of dizziness..."
             />
           </div>
         </section>
