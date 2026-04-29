@@ -11,23 +11,27 @@ function CasePage({ setSubmittedCase }) {
   const navigate = useNavigate()
 
   function handleSubmit(caseData) {
-    setSubmittedCase(caseData);
-    sessionStorage.setItem("submittedCase", JSON.stringify(caseData));
-    navigate('/results');
+    setSubmittedCase(caseData)
+    sessionStorage.setItem('submittedCase', JSON.stringify(caseData))
+    navigate('/results')
   }
 
   return <CaseInput onSubmit={handleSubmit} />
 }
 
+function getSavedCase() {
+  try {
+    const saved = sessionStorage.getItem('submittedCase')
+    return saved ? JSON.parse(saved) : null
+  } catch {
+    return null
+  }
+}
+
 function App() {
   const [acknowledged, setAcknowledged] = useState(false)
-  const [submittedCase, setSubmittedCase] = useState(() => {
-  const saved = sessionStorage.getItem("submittedCase");
-  return saved ? JSON.parse(saved) : null;
-} catch {
-  return null;  
-} 
-});
+  const [submittedCase, setSubmittedCase] = useState(getSavedCase)
+
   if (!acknowledged) {
     return <GateScreen onAcknowledge={() => setAcknowledged(true)} />
   }
