@@ -1,5 +1,6 @@
 import { useEffect, useRef, useState } from "react";
 import differentialCatalog from "../differential_catalog.json";
+import gapCatalog from "../assessment_gap_catalog.json";
 
 const API_BASE_URL = "https://idmt-ai-medical-preceptor.onrender.com";
 
@@ -83,6 +84,34 @@ function getFallbackDifferential(chiefComplaint) {
     more_common: bestCategory.more_common || [],
     other: bestCategory.other || []
   };
+}
+
+function getAssessmentGaps(chiefComplaint) {
+  if (!chiefComplaint) return [];
+
+  const text = normalizeText(chiefComplaint);
+
+  let bestMatch = null;
+  let bestScore = 0;
+
+  for (const category of Object.values(gapCatalog)) {
+    let score = 0;
+
+    for (const keyword of category.keywords || []) {
+      const normalizedKeyword = normalizeText(keyword);
+
+      if (text.includes(normalizedKeyword)) {
+        score += 1;
+      }
+    }
+
+    if (score > bestScore) {
+      bestScore = score;
+      bestMatch = category;
+    }
+  }
+
+  return bestMatch?.gaps || [];
 }
 
 function mergeGuidanceWithFallback(aiItems, fallbackItems, minimumCount = 3) {
@@ -329,7 +358,10 @@ export default function ResultsPanel({ caseData }) {
           "Continue reassessment for airway compromise, respiratory distress, altered mental status, hemodynamic instability, uncontrolled bleeding, or rapid clinical deterioration."
         ];
 
+  const gapChecklist = getAssessmentGaps(caseData.chiefComplaint);
+
   const askCheckFallback = [
+    ...gapChecklist,
     !vitalsComplete && "Obtain or repeat complete vital signs if possible.",
     !caseData.onset && "Clarify onset and timing of symptoms.",
     !caseData.provocation && "Clarify provoking and relieving factors.",
@@ -340,7 +372,7 @@ export default function ResultsPanel({ caseData }) {
     "Ask about associated symptoms and pertinent negatives.",
     "Reassess for new or worsening red flags.",
     "Verify recommendations against protocol source material and escalate when uncertain."
-  ].filter(Boolean);
+  ].filter(Boolean);  
 
   const protocolRecommendationFallback = protocolResults.length > 0
     ? [
@@ -461,7 +493,9 @@ export default function ResultsPanel({ caseData }) {
       </section>
 
       <section className="rounded-2xl border bg-white p-5 shadow-sm">
-        <h3 className="text-lg font-bold text-blue-800">3. What to Ask / Check Next</h3>
+        <h3 className="text-lg font-bold text-blue-800">
+          3. Critical Assessment Gaps & Next Steps
+        </h3>
         <GuidanceList
           items={aiGuidance?.ask_check_next}
           loadingAI={false}

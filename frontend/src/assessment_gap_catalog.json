@@ -1,0 +1,42 @@
+{
+  "chest_pain": {
+    "keywords": ["chest pain", "chest pressure", "chest tightness"],
+    "gaps": [
+      "Have you assessed for exertional vs rest symptoms?",
+      "Have you asked about radiation to arm, jaw, or back?",
+      "Have you assessed for shortness of breath or diaphoresis?",
+      "Have you evaluated for syncope or near-syncope?",
+      "Have you assessed for pulmonary embolism risk factors (travel, immobility, leg swelling)?"
+    ]
+  },
+  "shortness_of_breath": {
+    "keywords": ["shortness of breath", "sob", "dyspnea"],
+    "gaps": [
+      "Have you assessed for fever or infectious symptoms?",
+      "Have you evaluated for chest pain suggesting PE or cardiac causes?",
+      "Have you assessed for wheezing or asthma history?",
+      "Have you evaluated for hypoxia or worsening vitals?",
+      "Have you assessed for recent immobilization or clot risk?"
+    ]
+  },
+  "abdominal_pain": {
+    "keywords": ["abdominal pain", "belly pain"],
+    "gaps": [
+      "Have you assessed for migration of pain?",
+      "Have you evaluated for fever or systemic symptoms?",
+      "Have you assessed for vomiting or inability to tolerate PO?",
+      "Have you evaluated for pregnancy risk if applicable?",
+      "Have you assessed for rebound or guarding?"
+    ]
+  },
+  "knee_pain": {
+    "keywords": ["knee pain", "knee swelling"],
+    "gaps": [
+      "Have you assessed for fever suggesting septic joint?",
+      "Have you evaluated ability to bear weight?",
+      "Have you assessed for trauma or mechanism of injury?",
+      "Have you evaluated for warmth, redness, or effusion?",
+      "Have you considered DVT risk if swelling present?"
+    ]
+  }
+}
