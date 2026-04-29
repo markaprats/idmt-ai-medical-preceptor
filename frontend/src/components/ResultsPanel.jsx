@@ -6,10 +6,25 @@ function normalizeList(value) {
   return [String(value)];
 }
 
-function GuidanceList({ items }) {
+function GuidanceList({ items, loadingAI }) {
   const list = normalizeList(items);
-  if (list.length === 0) return <p className="text-sm text-slate-600">No output generated.</p>;
 
+  if (loadingAI) {
+    return <p className="text-sm text-blue-700">Generating guidance...</p>;
+  }
+
+  if (list.length === 0) {
+    return <p className="text-sm text-slate-600">Awaiting guidance output.</p>;
+  }
+
+  return (
+    <ul className="mt-2 list-disc space-y-1 pl-5 text-sm">
+      {list.map((item, index) => (
+        <li key={index}>{typeof item === "string" ? item : JSON.stringify(item)}</li>
+      ))}
+    </ul>
+  );
+}
   return (
     <ul className="mt-2 list-disc space-y-1 pl-5 text-sm">
       {list.map((item, index) => (
@@ -33,7 +48,7 @@ export default function ResultsPanel({ caseData }) {
       setAiError("");
 
       try {
-        const searchRes = await fetch("http://127.0.0.1:8000/api/search", {
+        const searchRes = await fetch("https://127.0.0.1:8000/api/search", {
           method: "POST",
           headers: { "Content-Type": "application/json" },
           body: JSON.stringify({ query: caseData.chiefComplaint }),
@@ -43,7 +58,7 @@ export default function ResultsPanel({ caseData }) {
         const results = searchData.results || [];
         setProtocolResults(results);
 
-        const aiRes = await fetch("http://127.0.0.1:8000/api/generate-guidance", {
+        const aiRes = await fetch("https://idmt-ai-medical-preceptor.onrender.com/api/generate-guidance", {
           method: "POST",
           headers: { "Content-Type": "application/json" },
           body: JSON.stringify({
@@ -65,7 +80,7 @@ export default function ResultsPanel({ caseData }) {
             .replace(/```/g, "")
             .trim();
 
-          parsed = JSON.parse(parsed);  
+          parsed   
         }
 
         setAiGuidance(parsed);
@@ -129,10 +144,16 @@ export default function ResultsPanel({ caseData }) {
       )}
 
       {aiError && (
-        <section className="rounded-2xl border bg-red-50 p-4 text-sm text-red-900">
-          AI guidance unavailable: {aiError}
-        </section>
-      )}
+  <section className="rounded-2xl border bg-red-50 p-4 text-sm text-red-900">
+    <p>AI guidance unavailable: {aiError}</p>
+    <button
+      className="mt-3 rounded-lg bg-red-700 px-4 py-2 font-semibold text-white"
+      onClick={() => window.location.reload()}
+    >
+      Retry Guidance
+    </button>
+  </section>
+)}
 
       <section className="rounded-2xl border border-red-100 bg-red-50 p-5 shadow-sm">
         <h3 className="text-lg font-bold text-red-800">1. Immediate Red Flags</h3>
@@ -150,7 +171,7 @@ export default function ResultsPanel({ caseData }) {
         <div className="mt-3 grid gap-4 md:grid-cols-3">
           <div>
             <h4 className="font-semibold">Cannot Miss</h4>
-            <GuidanceList items={aiGuidance?.differential_cannot_miss} />
+            <GuidanceList items={aiGuidance?.differential_cannot_miss} loadingAI={loadingAI} />
           </div>
           <div>
             <h4 className="font-semibold">More Common</h4>
