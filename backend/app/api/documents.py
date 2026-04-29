@@ -295,6 +295,15 @@ ask_check_next requirements:
 - Always provide at least 5 practical next questions, exam checks, reassessments, or missing data items.
 - Include missing vitals, OPQRST gaps, focused exam gaps, and pertinent positives/negatives when relevant.
 
+Medication Guidance requirements:
+- Always include medication decision support, even if limited.
+- State whether medications may be considered, avoided, or require preceptor input.
+- Include medication classes when clinically appropriate (e.g., analgesics, antipyretics, bronchodilators, antibiotics, antiemetics).
+- Include dosing ONLY if explicitly present in retrieved protocol source text.
+- If dosing is not supported by retrieved source, say: "Dose not provided in retrieved source. Verify in protocol before administration."
+- Include safety considerations when relevant: allergies, contraindications, pregnancy status, weight-based dosing, and scope-of-practice limitations.
+- If no medications are appropriate, explicitly state that medication is not indicated at this time.
+
 confidence_data_integrity requirements:
 - Must be a short sentence or short list of sentences.
 - Do NOT return a number.
