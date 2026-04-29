@@ -22,7 +22,7 @@ export default function DocumentUpload() {
     formData.append("file", file);
 
     try {
-      const response = await fetch("http://127.0.0.1:8000/upload-pdf", {
+      const response = await fetch("https://idmt-ai-medical-preceptor.onrender.com/api/upload-pdf", {
         method: "POST",
         body: formData,
       });
@@ -88,7 +88,7 @@ export default function DocumentUpload() {
                 <div key={page.page_number} className="rounded-lg border bg-gray-50 p-3">
                   <p className="text-sm font-semibold">Page {page.page_number}</p>
                   <pre className="mt-2 whitespace-pre-wrap text-xs text-gray-700">
-                    {page.text_preview || page.text || "No preview available."}
+                    {page.content || page.text_preview || page.text || "No preview available."}
                   </pre>
                 </div>
               ))}
