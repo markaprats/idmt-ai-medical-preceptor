@@ -60,7 +60,7 @@ class GenerateGuidanceRequest(BaseModel):
     protocol_results: List[dict]
 
 
-def chunk_text(text: str, chunk_size: int = 1200, overlap: int = 200):
+def chunk_text(text: str, chunk_size: int = 700, overlap: int = 120):
     if not text:
         return []
 
@@ -70,14 +70,15 @@ def chunk_text(text: str, chunk_size: int = 1200, overlap: int = 200):
 
     while start < len(cleaned):
         end = start + chunk_size
-        chunks.append(cleaned[start:end])
-        start = end - overlap
+        chunk = cleaned[start:end].strip()
 
-        if start < 0:
-            start = 0
+        if chunk:
+            chunks.append(chunk)
 
-        if start >= len(cleaned):
+        if end >= len(cleaned):
             break
+
+        start = max(end - overlap, start + 1)
 
     return chunks
 
@@ -215,7 +216,7 @@ async def search_documents(request: SearchRequest):
                     "document_name": chunk.get("document_name"),
                     "page_number": chunk.get("page_number"),
                     "chunk_id": chunk.get("chunk_id"),
-                    "snippet": chunk.get("text", "")[:700],
+                    "snippet": chunk.get("text", "")[:450],
                     "score": score,
                 }
             )
@@ -224,7 +225,7 @@ async def search_documents(request: SearchRequest):
 
     return {
         "query": request.query,
-        "results": scored[:5],
+        "results": scored[:3],
     }
 
 
