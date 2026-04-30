@@ -1,6 +1,54 @@
 import { useMemo, useState } from "react";
 import { matchChiefComplaint } from "../utils/redFlagMatcher";
 
+const DEMO_CASES = {
+  chest_pain: {
+    chiefComplaint: "Chest pain",
+    onset: "1 hour ago at rest",
+    provocation: "Worse with exertion, not reproducible",
+    quality: "Pressure",
+    radiation: "Left arm and jaw",
+    timeCourse: "Persistent",
+    severity: 8,
+    clinicalNotes: "Diaphoresis, nausea, shortness of breath",
+    hr: "110",
+    bp: "92/60",
+    rr: "24",
+    spo2: "92",
+    temp: "98.6"
+  },
+  sob: {
+    chiefComplaint: "Shortness of breath",
+    onset: "24 hours",
+    provocation: "Worse with exertion",
+    quality: "Can't catch breath",
+    radiation: "",
+    timeCourse: "Worsening",
+    severity: 7,
+    clinicalNotes: "Fever, cough, fatigue",
+    hr: "118",
+    bp: "104/68",
+    rr: "30",
+    spo2: "89",
+    temp: "101.3"
+  },
+  abdominal: {
+    chiefComplaint: "Right lower quadrant abdominal pain",
+    onset: "12 hours ago",
+    provocation: "Worse with movement",
+    quality: "Sharp",
+    radiation: "",
+    timeCourse: "Worsening",
+    severity: 7,
+    clinicalNotes: "Nausea, decreased appetite",
+    hr: "105",
+    bp: "110/70",
+    rr: "20",
+    spo2: "98",
+    temp: "100.8"
+  }
+};
+
 export default function CaseInput({ onSubmit }) {
   const [caseData, setCaseData] = useState({
     chiefComplaint: "",
@@ -32,6 +80,16 @@ export default function CaseInput({ onSubmit }) {
     otherRedFlag: ""
   });
 
+  function loadDemoCase(key) {
+    const demo = DEMO_CASES[key];
+    if (!demo) return;
+
+    setCaseData((prev) => ({
+      ...prev,
+      ...demo
+    }));
+  }
+  
   const [selectedRedFlags, setSelectedRedFlags] = useState([]);
 
   const redFlagMatch = useMemo(() => {
@@ -78,8 +136,40 @@ export default function CaseInput({ onSubmit }) {
     (flag) => !redFlagMatch?.universal?.includes(flag)
   );
 
-  return (
-    <form onSubmit={handleSubmit} className="space-y-5">
+ return (
+   <form onSubmit={handleSubmit} className="space-y-5">
+
+     <section className="rounded-2xl border bg-blue-50 p-4 shadow-sm">
+       <h3 className="text-lg font-bold text-blue-900">Demo Cases</h3>
+       <p className="text-sm text-blue-700 mb-2">
+         Load a simulated case for demonstration purposes.
+       </p>
+
+       <div className="flex flex-wrap gap-2">
+         <button
+           type="button"
+           onClick={() => loadDemoCase("chest_pain")}
+           className="px-3 py-2 bg-blue-700 text-white rounded-lg"
+         >
+           Chest Pain
+         </button>
+         <button
+           type="button"
+           onClick={() => loadDemoCase("sob")}
+           className="px-3 py-2 bg-blue-700 text-white rounded-lg"
+         >
+           Shortness of Breath
+         </button>
+         <button
+           type="button"
+           onClick={() => loadDemoCase("abdominal")}
+           className="px-3 py-2 bg-blue-700 text-white rounded-lg"
+         >
+           Abdominal Pain
+         </button>
+       </div>
+      </section>
+
       <section className="rounded-2xl border bg-white p-5 shadow-sm">
         <div className="flex flex-col gap-3 md:flex-row md:items-start md:justify-between">
           <div>
