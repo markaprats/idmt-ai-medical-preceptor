@@ -524,21 +524,30 @@ export default function ResultsPanel({ caseData }) {
         />
       </section>
 
-      <section className="rounded-2xl border bg-white p-5 shadow-sm">
-        <h3 className="text-lg font-bold text-blue-800">6. IDMT Assessment & Plan Review</h3>
-        <GuidanceList
-          items={aiGuidance?.assessment_plan_review}
-          loadingAI={loadingAI}
-          fallback={
-            caseData.assessment || caseData.plan
-              ? [
-                  `Entered assessment: ${caseData.assessment || "Not entered"}`,
-                  `Entered plan: ${caseData.plan || "Not entered"}`,
-                  "AI critique will appear when generation completes."
-                ]
-              : ["No IDMT assessment or plan entered for review."]
-          }
-        />
+      <section className="rounded-2xl border border-purple-200 bg-purple-50 p-5 shadow-sm">
+         <h3 className="text-lg font-bold text-purple-900">
+           6. Assessment & Plan Critique
+         </h3>
+
+         <p className="mt-1 text-sm text-purple-800">
+           This section evaluates the entered assessment and plan for safety, accuracy, and protocol alignment.
+         </p>
+
+         <div className="mt-4 rounded-xl border bg-white p-4">
+           <GuidanceList
+             items={aiGuidance?.assessment_plan_review}
+             loadingAI={loadingAI}
+             fallback={
+               caseData.assessment || caseData.plan
+                 ? [
+                     `Entered assessment: ${caseData.assessment || "Not entered"}`,
+                     `Entered plan: ${caseData.plan || "Not entered"}`,
+                     "AI critique will appear when generation completes."
+                   ]
+                 : ["No IDMT assessment or plan entered for review."]
+            }
+          />
+        </div>
       </section>
 
       <section className="rounded-2xl border border-red-100 bg-red-50 p-5 shadow-sm">
