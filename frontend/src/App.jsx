@@ -5,7 +5,6 @@ import Layout from './components/Layout'
 import DocumentUpload from './components/DocumentUpload'
 import CaseInput from './components/CaseInput'
 import ResultsPanel from './components/ResultsPanel'
-import TrainingMode from './components/TrainingMode'
 
 function CasePage({ setSubmittedCase }) {
   const navigate = useNavigate()
@@ -40,11 +39,10 @@ function App() {
     <BrowserRouter>
       <Routes>
         <Route path="/" element={<Layout />}>
-          <Route index element={<Navigate to="/upload" replace />} />
+          <Route index element={<Navigate to="/case" replace />} />
           <Route path="upload" element={<DocumentUpload />} />
           <Route path="case" element={<CasePage setSubmittedCase={setSubmittedCase} />} />
           <Route path="results" element={<ResultsPanel caseData={submittedCase} />} />
-          <Route path="training" element={<TrainingMode />} />
         </Route>
       </Routes>
     </BrowserRouter>
