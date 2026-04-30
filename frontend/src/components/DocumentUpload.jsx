@@ -42,10 +42,12 @@ export default function DocumentUpload() {
 
   return (
     <div className="space-y-6">
-      <section className="rounded-xl border bg-white p-4 shadow-sm">
-        <h2 className="text-xl font-semibold">Document Upload / Knowledge Base</h2>
-        <p className="mt-1 text-sm text-gray-600">
-          Upload the IDMT Protocol Book or approved CPG PDFs. This prototype extracts page-level text for later source citation.
+
+      <section className="rounded-xl border bg-yellow-50 p-4 shadow-sm">
+        <h2 className="text-xl font-semibold text-yellow-900">Admin Docs</h2>
+        <p className="mt-1 text-sm text-yellow-800">
+          Admin setup only. Upload or update protocol documents used by the AI preceptor system.
+          Demo users should not use this page during the clinical workflow.
         </p>
       </section>
 

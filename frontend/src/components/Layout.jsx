@@ -1,13 +1,13 @@
 import { Outlet, NavLink } from 'react-router-dom'
-import { FileText, Clipboard, Brain, GraduationCap, Shield, AlertTriangle } from 'lucide-react'
+import { FileText, Clipboard, Brain, Shield, AlertTriangle } from 'lucide-react'
 
 export default function Layout() {
   const navItems = [
-    { path: '/upload', icon: FileText, label: 'Documents' },
     { path: '/case', icon: Clipboard, label: 'Case Input' },
     { path: '/results', icon: Brain, label: 'Results' },
-    { path: '/training', icon: GraduationCap, label: 'Training' },
-  ]
+    { path: '/upload', icon: FileText, label: 'Admin Docs' },
+
+  ];
 
   return (
     <div className="min-h-screen bg-slate-50 flex flex-col">
